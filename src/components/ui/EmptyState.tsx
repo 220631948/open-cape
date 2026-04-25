@@ -7,8 +7,13 @@ interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: LucideIcon;
   title: string;
   description: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
   actionLabel?: string;
   onAction?: () => void;
+  className?: string;
 }
 
 export function EmptyState({
@@ -16,10 +21,14 @@ export function EmptyState({
   icon: Icon = LayoutGrid,
   title,
   description,
+  action,
   actionLabel,
   onAction,
   ...props
 }: EmptyStateProps) {
+  const finalActionLabel = action?.label || actionLabel;
+  const finalOnAction = action?.onClick || onAction;
+
   return (
     <div
       className={cn(
@@ -33,9 +42,9 @@ export function EmptyState({
       </div>
       <h3 className="text-lg font-medium text-surface-900 mb-1">{title}</h3>
       <p className="text-surface-500 max-w-sm mb-6">{description}</p>
-      {actionLabel && onAction && (
-        <Button variant="secondary" onClick={onAction}>
-          {actionLabel}
+      {finalActionLabel && finalOnAction && (
+        <Button variant="secondary" onClick={finalOnAction}>
+          {finalActionLabel}
         </Button>
       )}
     </div>

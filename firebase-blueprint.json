@@ -1,0 +1,185 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Core identity mapping for an authenticated user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": ["string", "null"] },
+        "displayName": { "type": ["string", "null"] },
+        "photoURL": { "type": ["string", "null"] },
+        "createdAt": { "$ref": "timestamp" },
+        "roles": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string" }
+      },
+      "required": ["uid", "roles", "status"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User preferences and workspace settings.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": ["string", "null"] },
+        "defaultMapCenter": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "defaultZoom": { "type": "number" },
+        "defaultBasemap": { "type": "string" },
+        "theme": { "type": "string" },
+        "createdAt": { "$ref": "timestamp" },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["uid"]
+    },
+    "Erf": {
+      "title": "Erf",
+      "description": "A specific land parcel record from the City of Cape Town.",
+      "type": "object",
+      "properties": {
+        "erfNumber": { "type": "string" },
+        "allotmentArea": { "type": "string" },
+        "portion": { "type": ["string", "null"] },
+        "zoning": { "type": ["string", "null"] },
+        "subZone": { "type": ["string", "null"] },
+        "address": { "type": ["string", "null"] },
+        "ownerName": { "type": ["string", "null"] },
+        "lastValuation": { "type": ["number", "null"] },
+        "center": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["erfNumber", "allotmentArea"]
+    },
+    "LayerPreferences": {
+      "title": "LayerPreferences",
+      "description": "User specific layer visibility and order preferences.",
+      "type": "object",
+      "properties": {
+        "ownerUid": { "type": "string" },
+        "lastBasemap": { "type": "string" },
+        "opacityOverrides": { "type": "object" },
+        "layerOrder": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["ownerUid"]
+    },
+    "Drawing": {
+      "title": "Drawing",
+      "description": "User-created geometry on the map.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "geometryType": { "type": "string", "enum": ["Point", "LineString", "Polygon"] },
+        "geometry": { "type": "object" },
+        "style": {
+          "type": "object",
+          "properties": {
+            "stroke": { "type": "string" },
+            "strokeWidth": { "type": "number" },
+            "fill": { "type": "string" },
+            "fillOpacity": { "type": "number" }
+          }
+        },
+        "privacy": { "type": "string", "enum": ["private", "shared", "public"] },
+        "sourceRefs": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "$ref": "timestamp" },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["id", "ownerUid", "title", "geometryType", "geometry"]
+    },
+    "Annotation": {
+      "title": "Annotation",
+      "description": "Private planning notes linked to workspace targets.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "projectId": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["drawing", "map", "saved-map", "placeholder-feature"] },
+        "targetId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "sourceRefs": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "$ref": "timestamp" },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["id", "ownerUid", "targetType", "targetId", "title"]
+    },
+    "VerifiedLocation": {
+      "title": "VerifiedLocation",
+      "description": "Analyst coordinate overrides for OSINT features.",
+      "type": "object",
+      "properties": {
+        "layerId": { "type": "string" },
+        "originalCoords": { 
+           "type": "array", 
+           "items": { "type": "number" },
+           "minItems": 2,
+           "maxItems": 2
+        },
+        "newCoords": { 
+           "type": "array", 
+           "items": { "type": "number" },
+           "minItems": 2,
+           "maxItems": 2
+        },
+        "reason": { "type": "string" },
+        "verifiedBy": { "type": "string" },
+        "verifiedAt": { "$ref": "timestamp" }
+      },
+      "required": ["layerId", "originalCoords", "newCoords", "reason", "verifiedBy"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Core routing logic for accounts."
+    },
+    "/user_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Extended user preferences and settings."
+    },
+    "/layer_preferences/{userId}": {
+      "schema": { "$ref": "#/entities/LayerPreferences" },
+      "description": "Per-user mapping preferences."
+    },
+    "/erfs/{erfId}": {
+      "schema": { "$ref": "#/entities/Erf" },
+      "description": "Master ERF records. ID is usually allotment_erf (e.g. CAPE_TOWN_12345)."
+    },
+    "/saved_maps/{mapId}": {
+      "schema": "object",
+      "description": "Private map views."
+    },
+    "/saved_projects/{projectId}": {
+      "schema": "object",
+      "description": "Private project workspaces."
+    },
+    "/drawings/{drawingId}": {
+      "schema": { "$ref": "#/entities/Drawing" },
+      "description": "User custom geometries."
+    },
+    "/annotations/{annotationId}": {
+      "schema": { "$ref": "#/entities/Annotation" },
+      "description": "Private user notes."
+    },
+    "/verified_locations/{locationId}": {
+      "schema": { "$ref": "#/entities/VerifiedLocation" },
+      "description": "OSINT Analyst verified locations."
+    }
+  }
+}

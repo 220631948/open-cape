@@ -1,0 +1,170 @@
+import { useState, useCallback, useEffect } from 'react';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/src/lib/firebase';
+
+export interface SourceRecord {
+  id: string;
+  sourceId: string;
+  name: string;
+  category: 'cadastre' | 'zoning' | 'contextual' | 'market' | 'registry' | 'imagery';
+  websiteUrl: string;
+  licenseNote: string;
+  coverage: string;
+  qualityBadge: string;
+  retrievedAt?: any;
+  verifiedAt?: any;
+  isPublic: boolean;
+  purposeDesc: string;
+  verificationStatus?: 'verified-integration' | 'pending-integration' | 'metadata-only' | 'simulated';
+}
+
+// Fallback seed data so the UI remains robust regardless of Firestore being seeded.
+export const VERIFIED_SOURCES: SourceRecord[] = [
+  {
+    id: 'cct_open_data_portal',
+    sourceId: 'cct_open_data_portal',
+    name: 'City of Cape Town Open Data Portal',
+    category: 'contextual',
+    websiteUrl: 'https://odp.capetown.gov.za/',
+    licenseNote: 'City of Cape Town Open Data License',
+    coverage: 'Cape Town Metro',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Authoritative public municipal data catalog for spatial base layers.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'cct_zoning',
+    sourceId: 'cct_zoning',
+    name: 'City of Cape Town Zoning',
+    category: 'zoning',
+    websiteUrl: 'https://odp.capetown.gov.za/',
+    licenseNote: 'City of Cape Town Open Data License',
+    coverage: 'Cape Town Metro',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Zoning layer reference to determine permissible land uses.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'cct_land_parcels',
+    sourceId: 'cct_land_parcels',
+    name: 'City of Cape Town Land Parcels',
+    category: 'cadastre',
+    websiteUrl: 'https://odp.capetown.gov.za/',
+    licenseNote: 'City of Cape Town Open Data License',
+    coverage: 'Cape Town Metro',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Cadastre/parcel layer reference for geographical boundaries.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'osm_geofabrik_sa',
+    sourceId: 'osm_geofabrik_sa',
+    name: 'Geofabrik SA Extract',
+    category: 'contextual',
+    websiteUrl: 'https://download.geofabrik.de/africa/south-africa.html',
+    licenseNote: 'Open Database License (ODbL)',
+    coverage: 'South Africa',
+    qualityBadge: 'Community Maintained',
+    isPublic: true,
+    purposeDesc: 'Open contextual basemap and geography source.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'nasa_gibs',
+    sourceId: 'nasa_gibs',
+    name: 'NASA GIBS Earthdata',
+    category: 'imagery',
+    websiteUrl: 'https://worldview.earthdata.nasa.gov/',
+    licenseNote: 'Public Domain',
+    coverage: 'Global',
+    qualityBadge: 'Scientific / Analytical',
+    isPublic: true,
+    purposeDesc: 'Stable low-resolution satellite imagery for macro-level analysis.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'openaerialmap',
+    sourceId: 'openaerialmap',
+    name: 'OpenAerialMap Community Index',
+    category: 'imagery',
+    websiteUrl: 'https://openaerialmap.org/',
+    licenseNote: 'CC-BY 4.0 / OdBL',
+    coverage: 'Global (Patchy)',
+    qualityBadge: 'Community Maintained',
+    isPublic: true,
+    purposeDesc: 'Open source aerial imagery contributed by community and drones.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'deeds_registration',
+    sourceId: 'deeds_registration',
+    name: 'SA Deeds Registration',
+    category: 'registry',
+    websiteUrl: 'https://deeds.gov.za/',
+    licenseNote: 'Official Registry / Regulated',
+    coverage: 'South Africa',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Official registry reference for future lawful verification workflows.',
+    verificationStatus: 'simulated'
+  },
+  {
+    id: 'property24_property_data',
+    sourceId: 'property24_property_data',
+    name: 'Property24 Property Data',
+    category: 'market',
+    websiteUrl: 'https://www.property24.com/',
+    licenseNote: 'Commercial License Required',
+    coverage: 'South Africa',
+    qualityBadge: 'Commercial Verified',
+    isPublic: false,
+    purposeDesc: 'Commercial market-data reference for future lawful integration.',
+    verificationStatus: 'simulated'
+  },
+  {
+    id: 'property24_development_api',
+    sourceId: 'property24_development_api',
+    name: 'Property24 Dev API',
+    category: 'market',
+    websiteUrl: 'https://www.property24.com/',
+    licenseNote: 'Commercial License Required',
+    coverage: 'South Africa',
+    qualityBadge: 'Commercial Verified',
+    isPublic: false,
+    purposeDesc: 'Commercial development API reference for future lawful integration.',
+    verificationStatus: 'simulated'
+  }
+];
+
+export function useSourceCatalog() {
+  const [sources, setSources] = useState<SourceRecord[]>(VERIFIED_SOURCES);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSources = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const snap = await getDocs(collection(db, 'source_catalog'));
+      if (!snap.empty) {
+         setSources(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as SourceRecord)));
+      }
+    } catch (err: any) {
+      console.warn("Using fallback source layout. Firestore collection missing or empty:", err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSources();
+  }, [fetchSources]);
+
+  const getSourceById = (id: string) => {
+    return sources.find(s => s.sourceId === id || s.id === id);
+  };
+
+  return { sources, isLoading, error, fetchSources, getSourceById };
+}

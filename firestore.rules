@@ -1,0 +1,175 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isOwner(ownerUid) {
+      return signedIn() && request.auth.uid == ownerUid;
+    }
+
+    function isAnalyst() {
+      // Prevent NPE if profile doesn't exist yet, but in theory analysts should exist
+      return signedIn() 
+             && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid))
+             && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'analyst';
+    }
+
+    function ownerUnchanged() {
+      return request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    function validPrivacy() {
+      return !('privacy' in request.resource.data) ||
+        request.resource.data.privacy in ['private', 'shared', 'public'];
+    }
+
+    // Public source metadata only
+    match /source_catalog/{sourceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Signed-in user identity mirror
+    match /users/{uid} {
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid;
+      allow read, delete: if isSelf(uid);
+      allow update: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Signed-in user profile
+    match /user_profiles/{uid} {
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid;
+      allow read, delete: if isSelf(uid);
+      allow update: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Per-user layer preferences keyed by uid
+    match /layer_preferences/{uid} {
+      allow create: if isSelf(uid)
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isSelf(uid);
+      allow update: if isSelf(uid)
+        && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Private saved maps
+    match /saved_maps/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validPrivacy();
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged()
+        && validPrivacy();
+    }
+
+    // Private saved projects
+    match /saved_projects/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validPrivacy();
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged()
+        && validPrivacy();
+    }
+
+    // Private bookmarks
+    match /bookmarks/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    // Private drawings
+    match /drawings/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validPrivacy();
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged()
+        && validPrivacy();
+    }
+
+    // Private annotations
+    match /annotations/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    // Recent searches are private
+    match /recent_searches/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    // Optional read-only sharing later
+    match /shared_views/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read: if resource.data.isPublic == true
+        || isOwner(resource.data.ownerUid);
+      allow delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    // Public ERF records
+    match /erfs/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /verified_locations/{docId} {
+      allow read: if signedIn();
+      allow create: if isAnalyst()
+        && request.resource.data.verifiedBy == request.auth.uid;
+      allow update: if isAnalyst()
+        && request.resource.data.verifiedBy == request.auth.uid
+        && resource.data.verifiedBy == request.auth.uid;
+      allow delete: if isAnalyst() && resource.data.verifiedBy == request.auth.uid;
+    }
+
+    // System/admin collections locked down by default
+    match /audit_logs/{docId} {
+      allow read, write: if false;
+    }
+
+    match /dataset_sync_runs/{docId} {
+      allow read, write: if false;
+    }
+
+    match /dataset_cache/{docId} {
+      allow read, write: if false;
+    }
+
+    match /feature_cache/{docId} {
+      allow read, write: if false;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

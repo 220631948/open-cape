@@ -7,6 +7,7 @@ interface ErrorStateProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   description?: string;
   onRetry?: () => void;
+  className?: string;
 }
 
 export function ErrorState({
