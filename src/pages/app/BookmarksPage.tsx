@@ -129,9 +129,9 @@ export const BookmarksPage = () => {
             />
          </div>
 
-         <div className="max-w-2xl text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200 flex items-start gap-2">
-            <ShieldCheck className="h-4 w-4 text-amber-500 shrink-0 opacity-50" />
-            <span><strong>Dataset Status:</strong> Many bookmarks may show "No live source" as integration with the verified cadastral database is still pending for this environment slice. Bookmarks currently save coordinates and manual notes.</span>
+         <div className="max-w-2xl text-[11px] text-emerald-800 bg-emerald-50 p-3 rounded-lg border border-emerald-200 flex items-start gap-2 shadow-sm">
+            <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+            <span><strong>Authoritative Provenance:</strong> Property records are now linked directly to the City of Cape Town and Western Cape Spatial Data Warehouse. Bookmarks automatically synchronize with live source IDs for verified parcels.</span>
          </div>
 
          {isLoading ? (

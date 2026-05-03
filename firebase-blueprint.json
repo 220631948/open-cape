@@ -109,7 +109,7 @@
         "id": { "type": "string" },
         "ownerUid": { "type": "string" },
         "projectId": { "type": "string" },
-        "targetType": { "type": "string", "enum": ["drawing", "map", "saved-map", "placeholder-feature"] },
+        "targetType": { "type": "string", "enum": ["drawing", "map", "saved-map", "placeholder-feature", "parcel"] },
         "targetId": { "type": "string" },
         "title": { "type": "string" },
         "body": { "type": "string" },

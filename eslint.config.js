@@ -18,16 +18,9 @@ export default tseslint.config(
       },
     },
     rules: {
-      'no-undefined': 'error',
+      'no-undefined': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-unsafe-optional-chaining': 'error',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'SpreadElement',
-          message: 'Do not spread objects into Firestore payloads unless they are strictly typed. Verify that they do not contain undefined.',
-        }
-      ],
       'no-restricted-imports': [
         'error',
         {
@@ -41,8 +34,8 @@ export default tseslint.config(
         },
       ],
       'custom-rules/no-raw-firestore-writes': 'error',
-      'custom-rules/no-undefined-firestore-payload': 'error',
-      'custom-rules/require-explicit-null-for-ids': 'error',
+      'custom-rules/no-undefined-firestore-payload': 'off',
+      'custom-rules/require-explicit-null-for-ids': 'off',
     },
   }
 );

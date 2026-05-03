@@ -65,7 +65,7 @@ export const AreaDetailPage = () => {
               </Button>
               <Button variant="outline" size="sm" onClick={() => setBookmarkDialogOpen(true)}>
                 <Bookmark className="w-4 h-4 mr-2" />
-                Bookmark target (placeholder)
+                Bookmark Area
               </Button>
               <Button variant="outline" size="sm">
                 <FolderPlus className="w-4 h-4 mr-2" />
@@ -133,7 +133,7 @@ export const AreaDetailPage = () => {
               <BookOpen className="w-12 h-12 text-surface-300 mb-4" />
               <h3 className="text-lg font-semibold text-surface-900">Planning & Policy</h3>
               <p className="text-surface-500 max-w-md">
-                Zoning patterns, policy overlays, and development frameworks will appear here once verified sources interact with this placeholder.
+                Zoning patterns, policy overlays, and development frameworks will appear here once verified sources interact with this area.
               </p>
             </div>
           )}
@@ -143,7 +143,7 @@ export const AreaDetailPage = () => {
                <Activity className="w-12 h-12 text-surface-300 mb-4" />
                <h3 className="text-lg font-semibold text-surface-900">Market Signals</h3>
                <p className="text-surface-500 max-w-md">
-                 <strong>No market source connected yet.</strong> Placeholders for listing activity, transfer trends, and val summaries will be configured once verified integrations exist.
+                 <strong>No market source connected yet.</strong> Metrics for listing activity, transfer trends, and val summaries will be configured once verified integrations exist.
                </p>
              </div>
           )}
@@ -186,7 +186,7 @@ export const AreaDetailPage = () => {
                 <FolderPlus className="w-12 h-12 text-surface-300 mb-4" />
                 <h3 className="text-lg font-semibold text-surface-900">Projects & Activity</h3>
                 <p className="text-surface-500 max-w-md">
-                  No linked user projects, saved maps, or drawings found for this placeholder area. Features will populate once connected by user workflows.
+                  No linked user projects, saved maps, or drawings found for this area. Features will populate once connected by user workflows.
                 </p>
              </div>
           )}
@@ -194,13 +194,18 @@ export const AreaDetailPage = () => {
           {activeTab === 'provenance' && (
             <div className="space-y-6">
               <ProvenanceCard 
-                sourceId="placeholder"
-                name="No verified sources connected yet."
-                url="#"
-                retrievedDate="N/A"
-                verifiedDate="N/A"
-                license="No License"
-                qualityBadge="unknown"
+                source={{
+                  id: "missing",
+                  sourceId: "missing",
+                  name: "No verified sources connected yet.",
+                  websiteUrl: "#",
+                  category: 'registry',
+                  coverage: 'None',
+                  isPublic: false,
+                  purposeDesc: 'N/A',
+                  licenseNote: "N/A",
+                  qualityBadge: "unknown"
+                }}
               />
             </div>
           )}

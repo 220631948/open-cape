@@ -34,7 +34,7 @@ export const AreaIndexPage = () => {
                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
                <input 
                  type="text"
-                 placeholder="Search area shell..."
+                 placeholder="Search areas..."
                  disabled
                  className="w-full pl-10 pr-4 py-2 border border-surface-300 rounded focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-surface-50 text-surface-500 cursor-not-allowed"
                />

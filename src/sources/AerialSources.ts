@@ -4,8 +4,8 @@ export const OpenAerialMapSource: AerialImageryContract = {
   id: 'openaerialmap',
   label: 'OpenAerialMap Community Index',
   category: 'open-contextual',
-  status: 'live',
-  health: 'healthy',
+  status: 'failed',
+  health: 'offline',
   
   mapLibreSource: {
     type: 'raster',
@@ -30,7 +30,7 @@ export const OpenAerialMapSource: AerialImageryContract = {
   attribution: '© OpenAerialMap contributors',
   coverage: 'Global (Patchy)',
   
-  isRenderable: true,
+  isRenderable: false,
   isQueryable: false,
   
   userMessages: []

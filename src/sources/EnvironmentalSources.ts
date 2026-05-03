@@ -11,7 +11,7 @@ export const EnvironmentalNdviSource: MapSourceContract = {
     type: 'geojson',
     data: { 
       type: 'FeatureCollection', 
-      features: [{type: 'Feature', geometry: {type: 'Polygon', coordinates: [[[18.3, -34.0], [18.6, -34.0], [18.6, -33.8], [18.3, -33.8], [18.3, -34.0]]]}, properties: {}}] 
+      features: [] 
     }
   },
   mapLibreLayers: [

@@ -9,16 +9,7 @@ interface DataFreshnessPillProps {
   status?: string;
 }
 
-export const DataFreshnessPill: React.FC<DataFreshnessPillProps> = ({ isLive = false, className, lastUpdated, status }) => {
-  if (status === 'simulated') {
-    return (
-      <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700", className)}>
-        <WifiOff className="h-3 w-3" />
-        Simulated Data
-      </span>
-    );
-  }
-
+export const DataFreshnessPill: React.FC<DataFreshnessPillProps> = ({ isLive = false, className, lastUpdated }) => {
   if (!isLive) {
     return (
       <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-100 text-surface-500", className)}>

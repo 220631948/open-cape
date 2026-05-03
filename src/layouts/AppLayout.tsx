@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router';
-import { Map, FolderKanban, Bookmark, MapPin, User as UserIcon, Settings, Search, Menu, X, Bell, LogOut, Loader2, Locate, Database, Pencil, MessageSquare, Layers } from 'lucide-react';
+import { Map, FolderKanban, Bookmark, MapPin, User as UserIcon, Settings, Search, Menu, X, Bell, LogOut, Loader2, Locate, Database, Pencil, MessageSquare, Layers, Users, Shield, CheckSquare } from 'lucide-react';
 import { CompareTray } from '@/src/components/compare/CompareTray';
 import { Button } from '@/src/components/ui/Button';
 import { cn } from '@/src/lib/utils';
@@ -14,7 +14,7 @@ export const AppLayout = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
-  const { results, isSearching, searchByErfNumber, searchSuggestions, fetchErfDetails } = useErfSearch();
+  const { results, isSearching, searchSuggestions, fetchErfDetails } = useErfSearch();
   const searchRef = useRef<HTMLDivElement>(null);
 
   const handleSelectErf = async (erfId: string) => {
@@ -65,8 +65,12 @@ export const AppLayout = () => {
 
   const navItems = [
     { to: '/app/map', icon: Map, label: 'Interactive Map', public: true },
+    { to: '/app/tasks', icon: CheckSquare, label: 'Tasks', public: false },
     { to: '/app/areas', icon: Layers, label: 'Areas & Precincts', public: false },
     { to: '/app/projects', icon: FolderKanban, label: 'Projects', public: false },
+    { to: '/app/team', icon: Users, label: 'Organization Team', public: false },
+    { to: '/app/roles', icon: Shield, label: 'Roles', public: false },
+    { to: '/app/settings', icon: Settings, label: 'Org Settings', public: false },
     { to: '/app/drawings', icon: Pencil, label: 'Drawings', public: false },
     { to: '/app/annotations', icon: MessageSquare, label: 'Notes', public: false },
     { to: '/app/bookmarks', icon: Bookmark, label: 'Bookmarks', public: false },

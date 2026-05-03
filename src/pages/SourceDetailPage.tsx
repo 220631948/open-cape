@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, ExternalLink, ShieldCheck, Database, Calendar } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ShieldCheck, Database, Calendar, Map } from 'lucide-react';
 import { useSourceCatalog } from '@/src/hooks/useSourceCatalog';
 import { Button } from '@/src/components/ui/Button';
 import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
@@ -42,7 +42,7 @@ export const SourceDetailPage = () => {
                      <p className="text-surface-500 text-lg">{source.purposeDesc}</p>
                      
                      <div className="pt-2 flex items-center gap-3">
-                        <DataFreshnessPill isLive={source.verificationStatus === 'verified-integration' || source.verificationStatus === 'simulated'} status={source.verificationStatus} />
+                        <DataFreshnessPill isLive={source.verificationStatus === 'verified-integration'} status={source.verificationStatus} />
                         <a href={source.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-rose-600 font-medium hover:underline flex items-center gap-1.5">
                            Official Documentation <ExternalLink className="h-3.5 w-3.5" />
                         </a>
@@ -58,12 +58,6 @@ export const SourceDetailPage = () => {
                 variant="success" 
                 title="System Status" 
                 description="Verified sources are live. Application is performing normally." 
-              />
-            ) : source.verificationStatus === 'simulated' ? (
-              <DataStatusBanner 
-                variant="info" 
-                title="Simulated Fallback Active" 
-                description="This source is running in simulated fallback mode since live credentials are not available. Mock data is being used for development." 
               />
             ) : (
               <DataStatusBanner variant="warning" />
@@ -92,7 +86,6 @@ export const SourceDetailPage = () => {
                      <div className="text-xs font-bold uppercase tracking-wider text-surface-400 flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Verification Status</div>
                      <div className="font-medium text-surface-900">
                         {source.verificationStatus === 'verified-integration' ? 'Live System Integration' : 
-                         source.verificationStatus === 'simulated' ? 'Simulated Fallback Integration' :
                          source.verificationStatus === 'pending-integration' ? 'Pending System Integration' : 'Metadata Only'}
                      </div>
                   </div>

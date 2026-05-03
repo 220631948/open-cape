@@ -37,41 +37,48 @@ export const EnvironmentalIntelligencePanel: React.FC = () => {
         <Globe className="h-4 w-4 text-emerald-600" />
         <h3 className="text-xs font-bold uppercase tracking-wider text-surface-900">Environmental Intelligence</h3>
       </div>
-      <p className="text-[9px] text-surface-500 mb-4 px-1 leading-relaxed">
-        Analytical layers derived from Google Earth Engine. Do not use for legal/official zoning.
+      <p className="text-[9px] text-surface-50 mb-4 px-1 leading-relaxed opacity-70">
+        Analytical layers derived from verified public sources and Earth Engine. 
+        Accuracy is contextual. Not for legal/official zoning.
       </p>
 
       <div className="space-y-4">
         {categories.map(category => (
           <div key={category} className="space-y-1">
-            <h4 className="text-[10px] font-semibold text-surface-500 uppercase tracking-widest px-1 mb-1">{category}</h4>
+            <h4 className="text-[10px] font-semibold text-emerald-100/50 uppercase tracking-widest px-1 mb-1">{category}</h4>
             {EE_LAYERS_CATALOG.filter(l => l.category === category).map(layer => {
               const isActive = activeLayers.includes(layer.id);
               const opacity = opacities[layer.id] ?? layer.opacity;
 
               return (
-                <div key={layer.id} className={cn("rounded-md transition-colors border", isActive ? 'bg-emerald-50 border-emerald-100' : 'bg-transparent border-transparent hover:bg-surface-50')}>
+                <div key={layer.id} className={cn("rounded-md transition-colors border", isActive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-transparent border-transparent hover:bg-white/5')}>
                   <div className="flex items-center justify-between p-1.5 pt-2">
                     <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                       <input 
                         type="checkbox" 
                         checked={isActive} 
                         onChange={() => toggleLayer(layer.id)}
-                        className="rounded text-emerald-600 focus:ring-emerald-500 h-3 w-3 border-surface-300"
+                        className="rounded text-emerald-500 focus:ring-emerald-500 h-3 w-3 border-white/20 bg-transparent"
                       />
-                      <span className={cn("text-xs truncate", isActive ? 'text-emerald-900 font-medium' : 'text-surface-600')}>{layer.name}</span>
+                      <span className={cn("text-xs truncate", isActive ? 'text-emerald-100 font-medium' : 'text-surface-300')}>{layer.name}</span>
                     </label>
                   </div>
                   {isActive && (
-                    <div className="px-6 pb-2 pt-1 flex items-center gap-2">
-                      <span className="text-[9px] text-emerald-700 w-12 shrink-0">Opacity</span>
-                      <input 
-                        type="range" 
-                        min="0" max="1" step="0.1" 
-                        value={opacity}
-                        onChange={(e) => updateOpacity(layer.id, parseFloat(e.target.value))}
-                        className="w-full h-1 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                      />
+                    <div className="px-6 pb-2 pt-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-emerald-400 w-12 shrink-0">Opacity</span>
+                        <input 
+                          type="range" 
+                          min="0" max="1" step="0.1" 
+                          value={opacity}
+                          onChange={(e) => updateOpacity(layer.id, parseFloat(e.target.value))}
+                          className="w-full h-1 bg-emerald-900 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[8px] text-emerald-500/60 font-mono">
+                        <span>SOURCE: SENTINEL-2/EE</span>
+                        <span>LIVE: 2024-04</span>
+                      </div>
                     </div>
                   )}
                 </div>

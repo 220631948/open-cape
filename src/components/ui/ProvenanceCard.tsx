@@ -15,7 +15,6 @@ export const ProvenanceCard: React.FC<ProvenanceCardProps> = ({ source, classNam
   const getIntegrationLabel = () => {
     if (isLive) return 'Currently Active';
     if (source.verificationStatus === 'verified-integration') return 'Verified System Integration';
-    if (source.verificationStatus === 'simulated') return 'Simulated Fallback Integration';
     if (source.verificationStatus === 'pending-integration') return 'Pending System Integration';
     if (source.verificationStatus === 'metadata-only') return 'Metadata Only / Registry';
     return 'Pending System Integration';
@@ -24,7 +23,6 @@ export const ProvenanceCard: React.FC<ProvenanceCardProps> = ({ source, classNam
   const getStatusBanner = () => {
     if (isLive) return <DataStatusBanner variant="success" />;
     if (source.verificationStatus === 'verified-integration') return <DataStatusBanner variant="info" title="System Status" description="Verified sources are live. Application is performing normally." />;
-    if (source.verificationStatus === 'simulated') return <DataStatusBanner variant="info" title="Simulated Integration" description="Running in fallback simulated mode. Live credentials not active." />;
     return <DataStatusBanner variant="warning" />;
   };
 
@@ -36,7 +34,7 @@ export const ProvenanceCard: React.FC<ProvenanceCardProps> = ({ source, classNam
              {source.name}
              <SourceBadge source={source} showIcon={false} />
           </h3>
-          <a href={source.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1 mt-1">
+          <a href={source.websiteUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1 mt-1">
              <ExternalLink className="h-3 w-3" />
              Visit Source Website
           </a>

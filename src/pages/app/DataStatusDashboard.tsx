@@ -111,7 +111,7 @@ export const DataStatusDashboard: React.FC = () => {
   const pendingSources = SOURCES.filter(s => s.status === 'unavailable').length;
 
   return (
-    <AppLayout>
+    <>
       <div className="flex-1 overflow-y-auto bg-surface-50 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
@@ -240,6 +240,6 @@ export const DataStatusDashboard: React.FC = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 };

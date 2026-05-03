@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { updateDoc, setDoc } from '@/src/lib/safeFirestore';;
 import { db } from '@/src/lib/firebase';
 import { useAuth } from '@/src/contexts/AuthContext';
 
 export interface UserProfile {
   uid: string;
   fullName: string | null;
-  role?: 'user' | 'analyst' | 'admin';
+  role?: 'user' | 'analyst' | 'admin' | 'owner' | 'viewer' | string;
+  tenantId?: string;
   defaultMapCenter: { lat: number; lng: number };
   defaultZoom: number;
   defaultBasemap: string;

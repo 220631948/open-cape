@@ -4,8 +4,8 @@ export const SaDeedsSource: RegistryReferenceContract = {
   id: 'deeds-registration',
   label: 'SA Deeds Registration',
   category: 'authoritative-registry',
-  status: 'simulated',
-  health: 'healthy',
+  status: 'failed',
+  health: 'offline',
   
   mapLibreSource: null,
   mapLibreLayers: [],
@@ -19,8 +19,8 @@ export const SaDeedsSource: RegistryReferenceContract = {
   
   userMessages: [
     {
-      type: 'info',
-      text: 'Using simulated fallback integration.'
+      type: 'error',
+      text: 'Integration offline.'
     }
   ]
 };
@@ -29,8 +29,8 @@ export const Property24Source: CommercialMarketContract = {
   id: 'property24',
   label: 'Property24 Market Data',
   category: 'commercial-market',
-  status: 'simulated',
-  health: 'healthy',
+  status: 'failed',
+  health: 'offline',
   
   mapLibreSource: null,
   mapLibreLayers: [],
@@ -44,8 +44,8 @@ export const Property24Source: CommercialMarketContract = {
   
   userMessages: [
     {
-      type: 'info',
-      text: 'Using simulated fallback integration.'
+      type: 'error',
+      text: 'Waitlisted commercial API.'
     }
   ]
 };

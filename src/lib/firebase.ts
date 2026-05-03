@@ -12,14 +12,8 @@ import {
   signOut,
   type User,
 } from 'firebase/auth';
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  type Firestore,
-} from 'firebase/firestore';
+import { getFirestore, doc, getDoc, serverTimestamp, type Firestore } from 'firebase/firestore';
+import { setDoc } from '@/src/lib/safeFirestore';;
 import firebaseAppletConfig from '../../firebase-applet-config.json';
 
 /**

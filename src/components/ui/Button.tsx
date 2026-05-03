@@ -1,39 +1,42 @@
-import React, { forwardRef } from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cn } from '@/src/lib/utils';
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "default";
+  size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', asChild = false, ...props }, ref) => {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className = "", variant = "primary", size = "default", asChild = false, ...props }, ref) => {
+    const baseStyles = "inline-flex items-center justify-center rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
+    
+    const variants = {
+      primary: "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20",
+      secondary: "bg-surface-800 text-white hover:bg-surface-700 border border-white/5",
+      ghost: "hover:bg-white/5 text-surface-400 hover:text-white",
+      outline: "border border-white/10 bg-transparent hover:bg-white/5 text-white",
+      default: "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20",
+    };
+    
+    const sizes = {
+      default: "h-10 px-4 py-2",
+      sm: "h-9 rounded-md px-3",
+      lg: "h-11 rounded-md px-8",
+      icon: "h-10 w-10",
+    };
+
     const Comp = asChild ? Slot : "button";
+
     return (
       <Comp
+        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
         ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-surface-50 cursor-pointer",
-          {
-            // Variants
-            "bg-surface-900 text-white hover:bg-surface-800 shadow-sm": variant === 'primary',
-            "bg-surface-100 text-surface-900 hover:bg-surface-200": variant === 'secondary',
-            "hover:bg-surface-100 text-surface-600 hover:text-surface-900": variant === 'ghost',
-            "border border-surface-200 bg-white hover:bg-surface-50 text-surface-900": variant === 'outline',
-            "bg-red-600 text-white hover:bg-red-700 shadow-sm": variant === 'destructive',
-            // Sizes
-            "h-8 px-3 text-sm": size === 'sm',
-            "h-10 py-2 px-4": size === 'md',
-            "h-12 px-8 text-lg": size === 'lg',
-            "h-10 w-10": size === 'icon',
-          },
-          className
-        )}
         {...props}
       />
     );
   }
 );
 Button.displayName = "Button";
+
+export { Button };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X } from 'lucide-react';
 import { getLiveErfRecordById } from '@/src/source_connectors/cctOpenDataClient';
 import { ProvenanceCard } from '@/src/components/ui/ProvenanceCard';
 import { Skeleton } from '@/src/components/ui/Skeleton';
@@ -107,23 +107,33 @@ export const LiveCompareColumn = ({ item, getIcon, getProjectName, onRemove }: a
          <ComparisonCard>
             {isLoading ? <Skeleton className="h-20 w-full" /> : liveData ? (
               <ProvenanceCard 
-                 sourceId={`CCT ODP: ${liveData.id}`}
-                 name="City of Cape Town ODP"
-                 url="https://odp.capetown.gov.za/"
-                 retrievedDate={new Date().toLocaleDateString()}
-                 verifiedDate={new Date().toLocaleDateString()}
-                 license="Public Domain"
-                 qualityBadge="verified"
+                 source={{
+                   id: `cct_odp_${liveData.id}`,
+                   sourceId: `cct_odp_${liveData.id}`,
+                   name: "City of Cape Town ODP",
+                   websiteUrl: "https://odp.capetown.gov.za/",
+                   category: 'cadastre',
+                   coverage: 'City of Cape Town',
+                   isPublic: true,
+                   purposeDesc: 'Used for live rendering.',
+                   licenseNote: "Public Domain",
+                   qualityBadge: "Verified"
+                 }}
               />
             ) : (
               <ProvenanceCard 
-                 sourceId="placeholder"
-                 name="No live source connected yet."
-                 url="#"
-                 retrievedDate="N/A"
-                 verifiedDate="N/A"
-                 license="No License"
-                 qualityBadge="unknown"
+                 source={{
+                   id: "placeholder",
+                   sourceId: "placeholder",
+                   name: "No live source connected yet.",
+                   websiteUrl: "#",
+                   category: 'registry',
+                   coverage: 'None',
+                   isPublic: false,
+                   purposeDesc: 'N/A',
+                   licenseNote: "No License",
+                   qualityBadge: "unknown"
+                 }}
               />
             )}
          </ComparisonCard>

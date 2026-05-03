@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, ExternalLink, ShieldCheck, Crosshair } from 'lucide-react';
+import { X, MapPin, ExternalLink, ShieldCheck, Crosshair, FileText, Download } from 'lucide-react';
 import { Button } from '@/src/components/ui/Button';
 import { cn } from '@/src/lib/utils';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -113,11 +113,17 @@ export const OsintDrawer: React.FC<OsintDrawerProps> = ({ className, isOpen, onC
               </div>
 
               {profile?.role === 'analyst' && (
-                 <div className="bg-white p-3 rounded-md border border-surface-200 shadow-sm">
-                    <h3 className="text-xs font-semibold text-surface-900 uppercase tracking-wider mb-2">Analyst Action</h3>
-                    <p className="text-xs text-surface-600 mb-3">If the source coordinate is incorrect, correct it by placing a verified pin.</p>
-                    <Button onClick={onInitiateLocationCorrection} className="w-full text-xs" variant="primary">
+                 <div className="bg-white p-3 rounded-md border border-surface-200 shadow-sm flex flex-col gap-2">
+                    <h3 className="text-xs font-semibold text-surface-900 uppercase tracking-wider mb-1">Analyst Actions</h3>
+                    <p className="text-[10px] text-surface-600 mb-1">Select an action to augment or export this record.</p>
+                    <Button onClick={onInitiateLocationCorrection} className="w-full text-xs justify-start" variant="primary">
                        <Crosshair className="h-3 w-3 mr-2" /> Correct Location
+                    </Button>
+                    <Button className="w-full text-xs justify-start" variant="outline" onClick={() => alert('Add Note functionality initiated')}>
+                       <FileText className="h-3 w-3 mr-2 text-indigo-500" /> Add Investigation Note
+                    </Button>
+                    <Button className="w-full text-xs justify-start" variant="outline" onClick={() => window.print()}>
+                       <Download className="h-3 w-3 mr-2 text-rose-500" /> Export PDF Report
                     </Button>
                  </div>
               )}

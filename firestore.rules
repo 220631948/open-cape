@@ -10,6 +10,18 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
+    }
+
+    function isTenantMember(tenantId) {
+      return signedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && getUserProfile().tenantId == tenantId;
+    }
+
+    function isTenantOwner(tenantId) {
+      return isTenantMember(tenantId) && getUserProfile().role == 'owner';
+    }
+
     function isOwner(ownerUid) {
       return signedIn() && request.auth.uid == ownerUid;
     }
@@ -49,9 +61,19 @@ service cloud.firestore {
     match /user_profiles/{uid} {
       allow create: if isSelf(uid)
         && request.resource.data.uid == request.auth.uid;
-      allow read, delete: if isSelf(uid);
-      allow update: if isSelf(uid)
-        && request.resource.data.uid == request.auth.uid;
+      allow read: if isSelf(uid) || (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == resource.data.tenantId);
+      allow delete: if isSelf(uid);
+      allow update: if (isSelf(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fullName', 'updatedAt', 'preferences'])) || 
+                    (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
+                     get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'owner' &&
+                     (
+                       (get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == request.resource.data.tenantId && 
+                        (resource.data.tenantId == null || resource.data.tenantId == request.resource.data.tenantId)) // Adding/Updating
+                       ||
+                       (get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == resource.data.tenantId && 
+                        request.resource.data.tenantId == null) // Removing
+                     )
+                    );
     }
 
     // Per-user layer preferences keyed by uid
@@ -114,6 +136,15 @@ service cloud.firestore {
         && ownerUnchanged();
     }
 
+    // Private tasks
+    match /tasks/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
     // Recent searches are private
     match /recent_searches/{docId} {
       allow create: if signedIn()
@@ -150,6 +181,35 @@ service cloud.firestore {
       allow delete: if isAnalyst() && resource.data.verifiedBy == request.auth.uid;
     }
 
+    match /tenants/{tenantId} {
+      allow read: if isTenantMember(tenantId);
+      allow create: if signedIn();
+      allow update: if isTenantOwner(tenantId);
+    }
+    
+    match /tenants/{tenantId}/config/{docId} {
+      allow read: if isTenantMember(tenantId);
+      allow create, update, delete: if isTenantOwner(tenantId);
+    }
+    
+    match /tenants/{tenantId}/roles/{roleId} {
+      allow read: if isTenantMember(tenantId);
+      allow create, update, delete: if isTenantOwner(tenantId);
+    }
+    
+    // Private imported layers
+    match /tenant_layers/{layerId} {
+      allow create: if signedIn() && isTenantMember(request.resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+      allow read: if signedIn() && isTenantMember(resource.data.tenantId);
+      allow update, delete: if signedIn() && isTenantMember(resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+
+      match /features/{featureId} {
+        allow create: if signedIn() && isTenantMember(request.resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+        allow read: if signedIn() && isTenantMember(resource.data.tenantId);
+        allow update, delete: if signedIn() && isTenantMember(resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+      }
+    }
+
     // System/admin collections locked down by default
     match /audit_logs/{docId} {
       allow read, write: if false;
@@ -165,6 +225,15 @@ service cloud.firestore {
 
     match /feature_cache/{docId} {
       allow read, write: if false;
+    }
+
+    // Agent run state and analytical outputs
+    match /agentState/{uid} {
+      allow read, write: if isSelf(uid);
+    }
+
+    match /analytics/{uid}/{document=**} {
+      allow read, write: if isSelf(uid);
     }
 
     // Default deny

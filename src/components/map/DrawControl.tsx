@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { useControl } from 'react-map-gl/maplibre';
 
@@ -24,19 +24,41 @@ export const DrawControl = forwardRef<MapboxDraw, DrawControlProps>((props, ref)
   const draw = useControl<any>(
     () => {
       const activeStyles = MapboxDraw.lib.theme.map((style: any) => {
-        if (style.id === 'gl-draw-lines') {
-          return {
-            ...style,
-            paint: {
-               ...style.paint,
-               'line-dasharray': [
-                 'case',
-                 ['==', ['get', 'active'], 'true'],
-                 ['literal', [0.2, 2]],
-                 ['literal', [2, 0]],
-               ],
-            }
-          };
+        // Highlight active lines and polygon strokes
+        if (style.id.includes('active') && style.type === 'line') {
+            return {
+                ...style,
+                paint: {
+                    ...style.paint,
+                    'line-color': '#f59e0b', // amber-500
+                    'line-width': 3,
+                    'line-dasharray': [0.2, 2]
+                }
+            };
+        }
+        // Highlight active polygon fill
+        if (style.id.includes('active') && style.type === 'fill') {
+            return {
+                ...style,
+                paint: {
+                    ...style.paint,
+                    'fill-color': '#f59e0b',
+                    'fill-opacity': 0.3
+                }
+            };
+        }
+        // Highlight active points
+        if (style.id.includes('active') && style.type === 'circle') {
+            return {
+                ...style,
+                paint: {
+                    ...style.paint,
+                    'circle-color': '#f59e0b',
+                    'circle-radius': 7,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#fff'
+                }
+            };
         }
         return style;
       });

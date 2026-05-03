@@ -3,6 +3,8 @@ import { OpenAerialMapSource, NasaGibsSource } from './AerialSources';
 import { SaDeedsSource, Property24Source } from './DataSources';
 import { CctErfBoundariesSource, CctZoningSource } from './CctSources';
 import { EnvironmentalNdviSource } from './EnvironmentalSources';
+import { WcgpCadastreSource, WcgpZoningSource, WcgpTopoSource, WcgpAerialSource, WcgpAdminBoundariesSource, OsmGeofabrikSaSource } from './WcgpSources';
+import { FloodRiskSource, ComplianceRiskSource } from './RiskSources';
 
 export const ALL_SOURCES: MapSourceContract[] = [
   OpenAerialMapSource,
@@ -11,7 +13,15 @@ export const ALL_SOURCES: MapSourceContract[] = [
   Property24Source,
   CctErfBoundariesSource,
   CctZoningSource,
-  EnvironmentalNdviSource
+  EnvironmentalNdviSource,
+  WcgpCadastreSource,
+  WcgpZoningSource,
+  WcgpTopoSource,
+  WcgpAerialSource,
+  WcgpAdminBoundariesSource,
+  OsmGeofabrikSaSource,
+  FloodRiskSource,
+  ComplianceRiskSource
 ];
 
 export function getSourceById(id: string): MapSourceContract | undefined {

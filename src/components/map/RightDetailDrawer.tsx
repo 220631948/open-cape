@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { X, Info, ShieldCheck, MapPin, Building2, Map, Tag, CircleDollarSign, Plus, MessageSquare, Layers } from 'lucide-react';
+import { X, Info, ShieldCheck, MapPin, Building2, Map, Tag, CircleDollarSign, Plus, MessageSquare, Layers, CircleDashed } from 'lucide-react';
 import { Button } from '@/src/components/ui/Button';
-import { cn } from '@/src/lib/utils';
+import { cn, scrubPopiaData } from '@/src/lib/utils';
 import { Card } from '@/src/components/ui/Card';
 import { ErfRecord } from '@/src/hooks/useErfSearch';
 import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
@@ -11,7 +11,25 @@ import { AnnotationEditor } from '@/src/components/annotations/AnnotationEditor'
 import { AnnotationCard } from '@/src/components/annotations/AnnotationCard';
 import { useProjects } from '@/src/hooks/useProjects';
 import { useCompareState } from '@/src/contexts/CompareContext';
+import { ValuationTrendChart } from '@/src/components/charts/ValuationTrendChart';
+import { TransactionTimeline } from '@/src/components/history/TransactionTimeline';
+import { EstimatedValuePanel } from '@/src/components/valuation/EstimatedValuePanel';
+import { RentalEstimatePanel } from '@/src/components/rentals/RentalEstimatePanel';
+import { OwnershipChangeAlert } from '@/src/components/ownership/OwnershipChangeAlert';
+import { PropertyRiskPanel } from '@/src/components/risk/PropertyRiskPanel';
+import { calculatePropertyValuation } from '@/src/services/valuationService';
+import { getTransactionHistory, getValuationTrends } from '@/src/services/historyService';
+import { detectOwnershipChange } from '@/src/services/ownershipService';
+import { useRentalEstimate } from '@/src/hooks/useRentalEstimate';
+import { usePropertyRisk } from '@/src/hooks/usePropertyRisk';
+import { useTransactionAnomalies } from '@/src/hooks/useTransactionAnomalies';
+import { useMarketSegments } from '@/src/hooks/useMarketSegments';
+import { usePriceForecast } from '@/src/hooks/usePriceForecast';
+import { TransactionAnomalyPanel } from '@/src/components/transactions/TransactionAnomalyPanel';
+import { MarketSegmentsPanel } from '@/src/components/segments/MarketSegmentsPanel';
+import { ForecastPanel } from '@/src/components/forecast/ForecastPanel';
 import { EnvironmentalSummaryCard } from './EnvironmentalSummaryCard';
+import { InsightPanel } from '@/src/components/ai/InsightPanel';
 
 interface RightDetailDrawerProps {
   className?: string;
@@ -23,7 +41,7 @@ interface RightDetailDrawerProps {
 }
 
 export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className, isOpen, setIsOpen, feature, showBuffer, setShowBuffer }) => {
-  const [activeTab, setActiveTab] = useState<'summary' | 'provenance' | 'notes' | 'compare'>('summary');
+  const [activeTab, setActiveTab] = useState<'overview' | 'market' | 'provenance' | 'env' | 'notes' | 'compare'>('overview');
   const { annotations, createAnnotation, updateAnnotation, deleteAnnotation } = useAnnotations();
   const { projects } = useProjects();
   const { addToCompare, isComparing, removeFromCompare } = useCompareState();
@@ -32,6 +50,69 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
   const [editingNote, setEditingNote] = useState<Annotation | null>(null);
 
   const featureAnnotations = annotations.filter(a => a.targetId === String(feature?.id));
+
+  // Rental Estimate Calculation
+  const rentalEstimate = useRentalEstimate({
+    parcelAreaSqm: feature?.properties?.['SHAPE.STArea()'],
+    zoning: feature?.zoning,
+    municipality: feature?.municipality,
+    propertyType: feature?.propertyType,
+    bedrooms: feature?.bedrooms,
+    municipalValuation: feature?.landValue || feature?.lastValuation,
+    disabled: !feature
+  });
+
+  // Property Risk Evaluation
+  const propertyRisk = usePropertyRisk({
+    floodHazardArea: feature?.floodHazardArea || false, // Derived from intersections
+    distanceToCoast: feature?.distanceToCoast || null,
+    zoningCompliance: typeof feature?.zoningCompliance !== 'undefined' ? feature?.zoningCompliance : null,
+    planningRestrictions: feature?.planningRestrictions || [],
+    disabled: !feature
+  });
+
+  // Transaction Anomalies Evaluation
+  const anomalyResult = useTransactionAnomalies({
+    transactionHistory: feature?.transactionHistory,
+    localComparableMedianPrice: feature?.lastValuation, // Proxy for local comp median here
+    disabled: !feature || !feature.transactionHistory || feature.transactionHistory.length === 0
+  });
+
+  // Market Segmentation Evaluation
+  const marketSegment = useMarketSegments({
+    areaSqm: feature?.properties?.['SHAPE.STArea()'],
+    zoning: feature?.zoning,
+    distanceToCoast: feature?.distanceToCoast,
+    valuation: feature?.landValue || feature?.lastValuation,
+    municipality: feature?.municipality,
+    disabled: !feature
+  });
+
+  // Price Forecasting Evaluation
+  const priceForecast = usePriceForecast({
+    transactions: feature?.transactionHistory,
+    currentValuation: feature?.landValue || feature?.lastValuation,
+    marketSegment: marketSegment?.segment,
+    municipality: feature?.municipality,
+    propertyRiskScore: propertyRisk?.totalScore,
+    disabled: !feature
+  });
+
+  // Valuation Evaluation
+  const valuationResult = typeof feature?.estimatedValueAvm !== 'undefined' ? {
+    estimatedValue: feature.estimatedValueAvm,
+    confidenceScore: typeof feature.avmConfidenceScore === 'number' ? feature.avmConfidenceScore : feature.avmConfidenceScore === 'High' ? 90 : feature.avmConfidenceScore === 'Medium' ? 60 : 30,
+    confidenceCategory: (typeof feature.avmConfidenceScore === 'string' ? feature.avmConfidenceScore : feature.avmConfidenceScore && feature.avmConfidenceScore >= 80 ? 'High' : feature.avmConfidenceScore && feature.avmConfidenceScore >= 50 ? 'Moderate' : 'Low') as 'High' | 'Moderate' | 'Low',
+    valuationMethod: 'Automated Valuation Model',
+    valuationTimestamp: feature.updatedAt || new Date().toISOString()
+  } : calculatePropertyValuation(
+    feature?.properties?.['SHAPE.STArea()'] || 0,
+    feature?.zoning,
+    feature?.municipality,
+    [], // Dummy, ideally fetch from sales
+    feature?.landValue || feature?.lastValuation || 0,
+    feature?.improvementValue || 0
+  );
 
   const handleCompareClick = () => {
     if (!feature) return;
@@ -47,14 +128,22 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
     }
   };
 
-  const handleSaveNote = async (data: any) => {
+  const handleSaveNote = async (data: { title: string; body: string; projectId: string | null; sourceRefs: string[] }) => {
     if (!feature) return;
     if (editingNote) {
-       await updateAnnotation(editingNote.id, data);
+       await updateAnnotation(editingNote.id, {
+         title: data.title,
+         body: data.body,
+         projectId: data.projectId || null,
+         sourceRefs: data.sourceRefs
+       });
     } else {
        await createAnnotation({
-         ...data,
-         targetType: 'placeholder-feature',
+         title: data.title,
+         body: data.body,
+         projectId: data.projectId || null,
+         sourceRefs: data.sourceRefs,
+         targetType: 'parcel',
          targetId: String(feature.id),
        });
     }
@@ -68,14 +157,15 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
   };
 
   const getProjectName = (projectId?: string) => {
-    if (!projectId) return undefined;
+    if (!projectId) return null;
     return projects.find(p => p.id === projectId)?.title;
   };
 
   if (!isOpen) return null;
 
   const tabs = [
-    { id: 'summary', label: 'Summary' },
+    { id: 'overview', label: 'Overview' },
+    { id: 'market', label: 'Market & Valuation' },
     { id: 'provenance', label: 'Provenance' },
     { id: 'env', label: 'Environment' },
     { id: 'notes', label: 'Notes' },
@@ -149,7 +239,7 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
                   variant="warning" 
                   className="text-left w-full mb-4" 
                   title="Dataset status"
-                  description="No live source connected yet for this category. Map features are currently placeholders."
+                  description="No live source connected yet for this category."
                 />
               </>
             ) : (
@@ -158,10 +248,35 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
                 className="text-left w-full mb-4" 
                 title="Dataset status"
                 description={feature.geometry ? "Verified parcel and zoning overlays are active. Information directly extracted from CCT authoritative source." : "Geometry is source-backed, but some attributes are not yet connected."}
-                serviceId="cct-parcels"
+                sourceId="cct-parcels"
               />
             )}
-            {activeTab === 'summary' && (
+            
+            {/* AI Insight Panel */}
+            <InsightPanel feature={feature} />
+
+            {/* Spatial Analysis - Buffer */}
+            {setShowBuffer && (
+              <div className="bg-surface-50 p-4 rounded-lg border border-surface-200 flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-surface-900 flex items-center gap-1.5">
+                    <CircleDashed className="w-4 h-4 text-violet-500" />
+                    Spatial Analysis
+                  </h4>
+                  <p className="text-xs text-surface-500 mt-0.5">50m Buffer: {showBuffer ? 'Active' : 'Inactive'}</p>
+                </div>
+                <Button 
+                  variant={showBuffer ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => setShowBuffer(!showBuffer)}
+                  className={cn(showBuffer && "bg-violet-600 hover:bg-violet-700")}
+                >
+                  {showBuffer ? 'Hide Buffer' : 'Show Buffer'}
+                </Button>
+              </div>
+            )}
+
+            {activeTab === 'overview' && (
               <div className="space-y-4">
                 {/* Street view / Building image Context */}
                 {(feature.center || feature.address) && (
@@ -208,71 +323,144 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
                        <p className="text-sm font-medium text-surface-900">{feature.address}</p>
                     </div>
                   )}
-                  {feature.ownerName ? (
+                    {/* Ownership & Tenure */}
                     <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5">
-                        <Building2 className="h-3 w-3" /> Owner
-                      </span>
-                      <p className="text-sm font-medium text-surface-900 truncate" title={feature.ownerName}>{feature.ownerName}</p>
+                      <div className="flex justify-between items-center">
+                         <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5">
+                           <Building2 className="h-3 w-3" /> Ownership Details
+                         </span>
+                         <span className="text-[8px] uppercase font-bold text-emerald-600 bg-emerald-50 px-1 border border-emerald-100 rounded">POPIA Compliant</span>
+                      </div>
+                      
+                      {feature.transactionHistory && detectOwnershipChange(feature.transactionHistory, feature.ownerType, feature.ownershipCategory) !== null && (
+                         <OwnershipChangeAlert event={detectOwnershipChange(feature.transactionHistory, feature.ownerType, feature.ownershipCategory)} className="mb-2 mt-2" />
+                      )}
+
+                      {feature.ownerName ? (
+                         <div className="space-y-1 mt-1">
+                            <p className="text-sm font-medium text-surface-900 truncate" title={scrubPopiaData(feature.ownerName) || ''}>{scrubPopiaData(feature.ownerName)}</p>
+                            <div className="text-[10px] text-surface-500 font-medium">Record type: {feature.ownerType || 'Individual/Entity'} {feature.ownershipCategory ? `• ${feature.ownershipCategory}` : ''}</div>
+                         </div>
+                      ) : (
+                         <p className="text-sm font-medium text-surface-500 mt-1">Restricted or not available</p>
+                      )}
+                      {feature.lastOwnershipChangeDate && (
+                         <div className="flex items-center gap-2 mt-2">
+                            <span className={cn(
+                               "text-[10px] px-2 py-0.5 rounded font-bold uppercase",
+                               new Date(feature.lastOwnershipChangeDate) > new Date(Date.now() - 24 * 30 * 24 * 60 * 60 * 1000) ? "bg-blue-100 text-blue-700" : "bg-surface-100 text-surface-600"
+                            )}>
+                               {new Date(feature.lastOwnershipChangeDate) > new Date(Date.now() - 24 * 30 * 24 * 60 * 60 * 1000) ? 'Recent Transfer' : 'Long-term Tenure'}
+                            </span>
+                         </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5">
-                        <Building2 className="h-3 w-3" /> Owner
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-surface-50 p-3 rounded-lg border border-surface-200">
+                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
+                        <Map className="h-3 w-3" /> Area
                       </span>
-                      <p className="text-sm font-medium text-surface-500">Not available from source</p>
+                      <p className="text-sm font-medium text-surface-900">
+                         {feature.properties?.['SHAPE.STArea()'] ? `${Math.round(feature.properties['SHAPE.STArea()'])} m²` : 'Not available from source'}
+                      </p>
                     </div>
+                    <div className="bg-surface-50 p-3 rounded-lg border border-surface-200">
+                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
+                        <Tag className="h-3 w-3" /> Zoning DMS
+                      </span>
+                      <p className="text-[11px] font-bold text-emerald-800">{feature.zoningCategory || 'Category'}</p>
+                      <p className="text-xs font-medium text-emerald-600 truncate" title={feature.zoning || ''}>{feature.zoning || 'Description'}</p>
+                    </div>
+                  </div>
+
+                  {propertyRisk && (
+                    <PropertyRiskPanel risk={propertyRisk} />
                   )}
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-surface-50 p-3 rounded-lg border border-surface-200">
-                    <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
-                      <Map className="h-3 w-3" /> Area
-                    </span>
-                    <p className="text-sm font-medium text-surface-900">
-                       {feature.properties?.['SHAPE.STArea()'] ? `${Math.round(feature.properties['SHAPE.STArea()'])} m²` : 'Not available from source'}
-                    </p>
-                  </div>
-                  <div className="bg-surface-50 p-3 rounded-lg border border-surface-200">
-                    <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
-                      <Tag className="h-3 w-3" /> Zoning DMS
-                    </span>
-                    <p className="text-sm font-medium text-emerald-700">{feature.zoning || 'Not available from source'}</p>
-                  </div>
-                </div>
-
-                <div className="bg-surface-50 p-3 rounded-lg border border-surface-200">
-                  <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
-                    <CircleDollarSign className="h-3 w-3" /> Market Valuation (CCT)
-                  </span>
-                  <p className="text-sm font-medium text-surface-900">
-                    {feature.lastValuation ? `R ${feature.lastValuation.toLocaleString()}` : 'Not available from source'}
-                  </p>
-                </div>
-
-                {/* Analytical Tools Section */}
-                <div className="pt-2">
-                  <h4 className="text-xs font-semibold text-surface-900 mb-3 px-1">Context Analysis</h4>
-                  <div className="bg-surface-50 p-3.5 rounded-lg border border-surface-200 flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
-                      <Layers className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h5 className="text-sm font-medium text-surface-900 mb-0.5">Site Context Buffer</h5>
-                      <p className="text-xs text-surface-500 leading-relaxed mb-3">Dynamically generate a 50m radius around this parcel to identify adjacent uses and environmental overlaps.</p>
-                      <Button 
-                        variant={showBuffer ? "secondary" : "default"} 
-                        size="sm" 
-                        className="w-full h-8 text-xs font-medium"
-                        onClick={() => setShowBuffer && setShowBuffer(!showBuffer)}
-                      >
-                        {showBuffer ? 'Remove Buffer' : 'Draw 50m Buffer'}
-                      </Button>
+                  {/* Analytical Tools Section */}
+                  <div className="pt-2">
+                    <h4 className="text-xs font-semibold text-surface-900 mb-3 px-1">Context Analysis</h4>
+                    <div className="bg-surface-50 p-3.5 rounded-lg border border-surface-200 flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-sm font-medium text-surface-900 mb-0.5">Site Context Buffer</h5>
+                        <p className="text-xs text-surface-500 leading-relaxed mb-3">Dynamically generate a 50m radius around this parcel to identify adjacent uses and environmental overlaps.</p>
+                        <Button 
+                          variant={showBuffer ? "secondary" : "primary"} 
+                          size="sm" 
+                          className="w-full h-8 text-xs font-medium"
+                          onClick={() => setShowBuffer && setShowBuffer(!showBuffer)}
+                        >
+                          {showBuffer ? 'Remove Buffer' : 'Draw 50m Buffer'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
+              </div>
+            )}
 
+            {activeTab === 'market' && (
+              <div className="space-y-4 animate-in fade-in">
+                  {/* Property Price */}
+                  <div className="bg-surface-50 p-4 rounded-lg border border-surface-200 space-y-4">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5 mb-1">
+                        <CircleDollarSign className="h-3 w-3" /> Property Details
+                      </span>
+                      {feature.saleStatus === 'For Sale' && feature.askingPrice ? (
+                        <p className="text-sm font-medium text-surface-900">Asking Price: R {feature.askingPrice.toLocaleString()}</p>
+                      ) : feature.lastSalePrice ? (
+                         <p className="text-sm font-medium text-surface-900">Last Sale Price: R {feature.lastSalePrice.toLocaleString()} <span className="text-surface-400 font-normal text-[10px]">({feature.lastSaleDate ? new Date(feature.lastSaleDate).getFullYear() : 'Unknown'})</span></p>
+                      ) : (
+                        <p className="text-sm font-medium text-surface-500">Price: Not available</p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-surface-200">
+                      <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider mb-1 block">Land Value</span>
+                      <p className="text-sm font-medium text-surface-900">
+                        {feature.landValue ? `R ${feature.landValue.toLocaleString()}` : feature.lastValuation ? `R ${feature.lastValuation.toLocaleString()}` : 'Not available'}
+                      </p>
+                      {(feature.valuationYear || feature.valuationSource) && (
+                         <p className="text-[10px] text-surface-500 mt-0.5">{feature.valuationSource || 'Municipal'} • {feature.valuationYear}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <EstimatedValuePanel valuation={valuationResult} />
+
+                  {rentalEstimate && (
+                    <RentalEstimatePanel estimate={rentalEstimate} />
+                  )}
+
+                  {marketSegment && (
+                    <MarketSegmentsPanel segmentation={marketSegment} />
+                  )}
+
+                  {priceForecast && (
+                    <ForecastPanel forecast={priceForecast} />
+                  )}
+
+                  {/* History Tabs */}
+                  <div className="pt-2">
+                    <h4 className="text-xs font-semibold text-surface-900 mb-3 px-1">Temporal Sequence</h4>
+                    <div className="bg-surface-50 p-4 rounded-lg border border-surface-200">
+                       <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider block mb-3">Valuation Trend</span>
+                       <ValuationTrendChart data={getValuationTrends(feature.valuationHistory || [])} className="mb-6" />
+                       
+                       <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider block mb-3">Transaction History</span>
+                       <TransactionTimeline transactions={getTransactionHistory(feature.transactionHistory || [])} />
+                       {anomalyResult && (
+                         <div className="mt-3 border-t border-surface-200 pt-1">
+                           <TransactionAnomalyPanel anomaly={anomalyResult} />
+                         </div>
+                       )}
+                    </div>
+                  </div>
               </div>
             )}
             
@@ -324,9 +512,9 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
             
             {activeTab === 'env' && (
               <div className="h-full animate-in fade-in">
-                 <EnvironmentalSummaryCard 
+                  <EnvironmentalSummaryCard 
                     featureId={String(feature.id)} 
-                    onLinkToMap={() => setActiveTab('summary')}
+                    onLinkToMap={() => setActiveTab('overview')}
                  />
               </div>
             )}
@@ -368,7 +556,7 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
                 <p className="text-sm text-surface-500 max-w-[200px]">Add this parcel to your comparison list to evaluate it side-by-side with other features.</p>
                 <Button 
                   onClick={handleCompareClick} 
-                  variant={isComparing(feature.id) ? "secondary" : "default"}
+                  variant={isComparing(feature.id) ? "secondary" : "primary"}
                   className="w-full"
                 >
                   {isComparing(feature.id) ? 'Remove from Compare' : 'Compare Parcel'}
@@ -410,7 +598,7 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
       {isEditingNote && feature && (
          <div className="absolute inset-0 z-30 bg-black/10 flex items-center justify-center p-2 backdrop-blur-sm">
             <AnnotationEditor 
-              targetType="placeholder-feature"
+              targetType="parcel"
               targetId={String(feature.id)}
               initialTitle={editingNote?.title}
               initialBody={editingNote?.body}

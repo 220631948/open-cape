@@ -32,6 +32,37 @@ export interface ErfRecord {
      verificationStatus: string;
      displayMode: string;
   };
+
+  // Pricing & AVM Enrichment
+  askingPrice?: number | null;
+  lastSalePrice?: number | null;
+  lastSaleDate?: string | null;
+  saleStatus?: string | null;
+  
+  valuationSource?: string | null;
+  valuationYear?: string | number | null;
+  landValue?: number | null;
+  improvementValue?: number | null;
+  
+  estimatedValueAvm?: number | null;
+  avmConfidenceScore?: number | 'High' | 'Medium' | 'Low' | null;
+  pricePerSqm?: number | null;
+  
+  ownerType?: string | null;
+  ownershipCategory?: string | null;
+  lastOwnershipChangeDate?: string | null;
+  
+  transactionHistory?: { date: string; price: number; type: string }[];
+  valuationHistory?: { year: string; value: number; source: string }[];
+
+  // Property Risk Additions
+  floodHazardArea?: boolean;
+  distanceToCoast?: number | null;
+  zoningCompliance?: boolean | null;
+  planningRestrictions?: string[];
+  propertyType?: string;
+  bedrooms?: number;
+  municipality?: string;
 }
 
 export function useErfSearch() {

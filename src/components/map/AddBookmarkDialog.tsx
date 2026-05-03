@@ -26,7 +26,7 @@ export const AddBookmarkDialog: React.FC<AddBookmarkDialogProps> = ({ isOpen, on
 
   // Derive source info if feature is selected
   const targetSource = currentFeatureId ? ALL_SOURCES.find(s => 
-    currentFeatureId.startsWith(s.id) || (s.id === 'erf_boundaries' && currentFeatureId.startsWith('cct-'))
+    String(currentFeatureId).startsWith(s.id) || (s.id === 'erf_boundaries' && String(currentFeatureId).startsWith('cct-'))
   ) : null;
 
   if (!isOpen) return null;

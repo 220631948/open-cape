@@ -6,11 +6,11 @@ import {
   MessageSquare,
   Clock, 
   Trash2, 
-  FolderOpen,
   MousePointer2,
   Map as MapIcon,
   Layers,
-  FileText
+  FileText,
+  Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -68,16 +68,22 @@ export const AnnotationCard: React.FC<AnnotationCardProps> = ({
         <div className="flex flex-wrap gap-2 mb-4">
            {projectName && (
              <div className="flex items-center gap-1.5 text-[10px] text-rose-600 font-semibold bg-rose-50 px-2 py-1 rounded w-fit border border-rose-100">
-                <FolderOpen className="h-2.5 w-2.5" />
+                <Building2 className="h-2.5 w-2.5" />
                 {projectName}
              </div>
            )}
            
-           {annotation.sourceRefs.length > 0 && (
-             <div className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter self-center">
-                {annotation.sourceRefs.length} Verified Sources
+           {annotation.sourceRefs && annotation.sourceRefs.length > 0 ? (
+             <div className="text-[9px] text-emerald-600 font-bold uppercase tracking-tighter self-center px-1.5 py-0.5 border border-emerald-200 bg-emerald-50 rounded">
+                Verified: {annotation.sourceRefs.length} Source{annotation.sourceRefs.length !== 1 ? 's' : ''}
+             </div>
+           ) : (
+             <div className="text-[9px] text-surface-400 font-bold uppercase tracking-tighter self-center px-1.5 py-0.5 border border-surface-200 bg-surface-50 rounded">
+                Metadata: Not Available
              </div>
            )}
+           
+           {/* If a mock restricted state is needed, we could check for specific keywords in title, but let's just render the available state. */}
         </div>
 
         <div className="flex items-center gap-2 pt-3 border-t border-surface-100">

@@ -7,7 +7,7 @@ import { Skeleton } from '@/src/components/ui/Skeleton';
 import { ErrorState } from '@/src/components/ui/ErrorState';
 
 export const ProjectsPage = () => {
-   const { projects, isLoading, error, createProject, deleteProject } = useProjects();
+   const { projects, isLoading, error, createProject } = useProjects();
    const [searchQuery, setSearchQuery] = useState('');
    const [isCreating, setIsCreating] = useState(false);
    const [newTitle, setNewTitle] = useState('');

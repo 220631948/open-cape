@@ -3,24 +3,23 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/src
 import { Button } from '@/src/components/ui/Button';
 import { Input } from '@/src/components/ui/Input';
 import { Textarea } from '@/src/components/ui/Textarea';
-import { X, MessageSquare, Link as LinkIcon, ShieldAlert } from 'lucide-react';
+import { X, MessageSquare, Building2, ShieldAlert } from 'lucide-react';
 import { useProjects } from '@/src/hooks/useProjects';
 
 interface AnnotationEditorProps {
-  targetType: 'drawing' | 'map' | 'saved-map' | 'placeholder-feature';
+  targetType: 'drawing' | 'map' | 'saved-map' | 'placeholder-feature' | 'parcel';
   targetId: string;
   initialTitle?: string;
   initialBody?: string;
-  projectId?: string;
+  projectId?: string | null;
   sourceRefs?: string[];
-  onSave: (data: { title: string, body: string, projectId?: string, sourceRefs: string[] }) => void;
+  onSave: (data: { title: string, body: string, projectId: string | null, sourceRefs: string[] }) => void;
   onClose: () => void;
   isSaving?: boolean;
 }
 
 export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
   targetType,
-  targetId,
   initialTitle = '',
   initialBody = '',
   projectId: initialProjectId,
@@ -35,7 +34,7 @@ export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
   const [projectId, setProjectId] = useState(initialProjectId || '');
 
   const handleSave = () => {
-    onSave({ title, body, projectId: projectId || undefined, sourceRefs });
+    onSave({ title, body, projectId: projectId || null, sourceRefs });
   };
 
   return (
@@ -88,7 +87,7 @@ export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold uppercase tracking-wider text-surface-700 flex items-center gap-1">
-              <LinkIcon className="h-2.5 w-2.5" /> Link Project (Optional)
+              <Building2 className="h-2.5 w-2.5" /> Link Project (Optional)
             </label>
             <select
               value={projectId}

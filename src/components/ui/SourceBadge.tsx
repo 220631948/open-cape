@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, ShieldAlert, Globe, Server, Database } from 'lucide-react';
+import { Shield, ShieldAlert, Server } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { SourceRecord } from '@/src/hooks/useSourceCatalog';
 
@@ -11,17 +11,7 @@ interface SourceBadgeProps {
 
 export const SourceBadge: React.FC<SourceBadgeProps> = ({ source, className, showIcon = true }) => {
   const isPending = source.verificationStatus === 'pending-integration';
-  const isSimulated = source.verificationStatus === 'simulated';
   
-  if (isSimulated) {
-    return (
-      <span className={cn("inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm", className)} title="Simulated Integration">
-        {showIcon && <Server className="h-3 w-3" />}
-        {source.name} (Simulated)
-      </span>
-    );
-  }
-
   if (source.isPublic && !isPending) {
     return (
       <span className={cn("inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm", className)} title="Authoritative Public Source">

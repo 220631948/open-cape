@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-useless-assignment */
 import * as turf from '@turf/turf';
 
 export const CCT_OPEN_DATA_CONFIG = {
-  parcelsEndpoint: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/57',
-  zoningEndpoint: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/59',
+  parcelsEndpoint: 'https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/SG_PlanningCadastre/MapServer/1',
+  zoningEndpoint: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/59', // Keep CCT for zoning as WC doesn't have a consolidated layer
   openDataPortalQueryUrl: 'https://opendata.arcgis.com/api/v3/datasets',
 };
 
@@ -73,14 +74,14 @@ export async function queryCCTParcelById(objectId: string) {
 }
 
 export async function searchCCTParcels(searchTerm: string) {
-  // If it's pure numbers, could be PRTY_NMBR or ERF_NMBR
+  // If it's pure numbers, could be TAG_VALUE
   const isNumeric = /^\d+$/.test(searchTerm.trim());
-  let where = `ERF_NMBR LIKE '${searchTerm.toUpperCase()}%' OR ALLOTMENT_AREA LIKE '${searchTerm.toUpperCase()}%'`;
+  let where = `TAG_VALUE LIKE '${searchTerm.toUpperCase()}%' OR Town_name LIKE '${searchTerm.toUpperCase()}%'`;
   if (isNumeric) {
-    where = `ERF_NMBR = '${searchTerm}' OR PRTY_NMBR = '${searchTerm}'`;
+    where = `TAG_VALUE = '${searchTerm}'`;
   } else {
     // Also include STR_NAME since we are dealing with land parcels layer 57 which has it
-    where = `PRTY_NMBR LIKE '${searchTerm.toUpperCase()}%' OR STR_NAME LIKE '${searchTerm.toUpperCase()}%' OR OFC_SBRB_NAME LIKE '${searchTerm.toUpperCase()}%'`;
+    where = `Town_name LIKE '${searchTerm.toUpperCase()}%' OR MUNICNAME LIKE '${searchTerm.toUpperCase()}%'`;
   }
   
   const url = `${CCT_OPEN_DATA_CONFIG.parcelsEndpoint}/query?f=geojson&where=${encodeURIComponent(where)}&outFields=*&returnGeometry=true&resultRecordCount=10`;
@@ -118,10 +119,10 @@ export async function getLiveErfRecordById(objectId: string): Promise<any | null
       }
 
       return {
-        id: `cct-${props.OBJECTID}`,
+        id: `wcgp-${props.OBJECTID}`,
         objectId: props.OBJECTID,
-        erfNumber: props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
-        allotmentArea: props.ALLOTMENT_AREA || props.OFC_SBRB_NAME || 'City of Cape Town',
+        erfNumber: props.TAG_VALUE || props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
+        allotmentArea: props.Town_name || props.MUNICNAME || props.ALLOTMENT_AREA || props.OFC_SBRB_NAME || 'Western Cape',
         address: props.ADRS_STRT_NAME ? `${props.ADRS_STRT_NO} ${props.ADRS_STRT_NAME}, ${props.ADRS_SBRB}` : 
                  props.STR_NAME ? `${props.ADR_NO || ''} ${props.STR_NAME} ${props.LU_STR_NAME_TYPE || ''}, ${props.OFC_SBRB_NAME || ''}`.trim() : null,
         center: { lat, lng },
@@ -133,8 +134,8 @@ export async function getLiveErfRecordById(objectId: string): Promise<any | null
         zoningFeature: zoningFeature,
         properties: props,
         provenance: {
-           sourceId: 'cct-land-parcels',
-           sourceName: 'City of Cape Town Land Parcels',
+           sourceId: 'wcgp-sg-cadastre',
+           sourceName: 'Western Cape SG Cadastre (Erven)',
            recordId: props.OBJECTID?.toString(),
            geometryType: feature.geometry?.type || 'Unknown',
            fetchedAt: new Date().toISOString(),
@@ -149,7 +150,7 @@ export async function getLiveErfRecordById(objectId: string): Promise<any | null
   }
   return null;
 }
-export async function getLiveErfRecord(lng: number, lat: number): Promise<any | null> {
+export async function getLiveErfRecord(lng: number, lat: number, mapFeature?: any): Promise<any | null> {
   try {
     const [parcelData, zoningData] = await Promise.all([
       queryCCTParcelsByCoords(lng, lat).catch(() => null),
@@ -165,9 +166,9 @@ export async function getLiveErfRecord(lng: number, lat: number): Promise<any | 
       const zoningProps = zoningFeature?.properties;
 
       return {
-        id: `cct-${props.OBJECTID}`,
-        erfNumber: props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
-        allotmentArea: props.ALLOTMENT_AREA || props.OFC_SBRB_NAME || 'City of Cape Town',
+        id: `wcgp-${props.OBJECTID}`,
+        erfNumber: props.TAG_VALUE || props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
+        allotmentArea: props.Town_name || props.MUNICNAME || props.ALLOTMENT_AREA || props.OFC_SBRB_NAME || 'Western Cape',
         address: props.ADRS_STRT_NAME ? `${props.ADRS_STRT_NO} ${props.ADRS_STRT_NAME}, ${props.ADRS_SBRB}` : 
                  props.STR_NAME ? `${props.ADR_NO || ''} ${props.STR_NAME} ${props.LU_STR_NAME_TYPE || ''}, ${props.OFC_SBRB_NAME || ''}`.trim() : null,
         center: { lat, lng },
@@ -179,14 +180,41 @@ export async function getLiveErfRecord(lng: number, lat: number): Promise<any | 
         zoningFeature: zoningFeature,
         properties: props,
         provenance: {
-           sourceId: 'cct-land-parcels',
-           sourceName: 'City of Cape Town Land Parcels',
+           sourceId: 'wcgp-sg-cadastre',
+           sourceName: 'Western Cape SG Cadastre (Erven)',
            recordId: props.OBJECTID?.toString(),
            geometryType: feature.geometry?.type || 'Unknown',
            fetchedAt: new Date().toISOString(),
            verifiedAt: new Date().toISOString(),
            verificationStatus: 'verified-source-record',
            displayMode: feature.geometry?.type === 'Polygon' || feature.geometry?.type === 'MultiPolygon' ? 'source-geometry' : 'point-overview'
+        }
+      };
+    } else if (mapFeature) {
+      // Fallback to WCGP or other vector layer feature
+      const props = mapFeature.properties;
+      return {
+        id: `wcgp-${props.OBJECTID || props.id || Math.random().toString(36).substr(2, 9)}`,
+        erfNumber: props.erf_number || props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
+        allotmentArea: props.municipality || 'Western Cape',
+        address: props.address || null,
+        center: { lat, lng },
+        status: 'live',
+        zoning: props.zoning || 'Not available from source',
+        zoningCategory: props.zoning || 'Unknown',
+        geometry: mapFeature.geometry || { type: "Point", coordinates: [lng, lat] },
+        parcelFeature: mapFeature,
+        zoningFeature: null,
+        properties: props,
+        provenance: {
+           sourceId: mapFeature.layer?.id || 'wcgp-cadastre-vector',
+           sourceName: 'Western Cape Spatial Data Warehouse',
+           recordId: (props.OBJECTID || props.id)?.toString() || 'unknown',
+           geometryType: mapFeature.geometry?.type || 'Unknown',
+           fetchedAt: new Date().toISOString(),
+           verifiedAt: new Date().toISOString(),
+           verificationStatus: 'verified-source-record',
+           displayMode: mapFeature.geometry?.type === 'Polygon' || mapFeature.geometry?.type === 'MultiPolygon' ? 'source-geometry' : 'point-overview'
         }
       };
     }

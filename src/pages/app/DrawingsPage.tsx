@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDrawings, Drawing, DrawingStyle } from '@/src/hooks/useDrawings';
 import { useProjects } from '@/src/hooks/useProjects';
-import { DrawingCard } from '@/src/components/drawings/DrawingCard';
 import { EditDrawingDialog } from '@/src/components/drawings/EditDrawingDialog';
+import { SortableDrawingCard } from '@/src/components/drawings/SortableDrawingCard';
 import { EmptyState } from '@/src/components/ui/EmptyState';
 import { Skeleton } from '@/src/components/ui/Skeleton';
-import { Pencil, Plus, Search, Map as MapIcon, Loader2 } from 'lucide-react';
+import { Pencil, Search, Map as MapIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/src/components/ui/Button';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
 
 export const DrawingsPage = () => {
   const navigate = useNavigate();
-  const { drawings, isLoading, updateDrawing, deleteDrawing } = useDrawings();
+  const { drawings, isLoading, updateDrawing, deleteDrawing, reorderDrawings } = useDrawings();
   const { projects } = useProjects();
   const [searchQuery, setSearchQuery] = useState('');
   
   const [editingDrawing, setEditingDrawing] = useState<Drawing | null>(null);
+  
+  // Local state for optimistic UI updates during drag
+  const [localDrawings, setLocalDrawings] = useState<Drawing[]>([]);
 
-  const filteredDrawings = drawings.filter(d => 
+  useEffect(() => {
+    setLocalDrawings(drawings);
+  }, [drawings]);
+
+  const filteredDrawings = localDrawings.filter(d => 
     d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.geometryType.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -28,13 +50,32 @@ export const DrawingsPage = () => {
   };
 
   const handleViewOnMap = (drawing: Drawing) => {
-    // We'll pass the drawing state to navigate so map focus can happen
     navigate('/app/map', { state: { focusDrawing: drawing } });
   };
 
   const handleEditDrawingSave = async (id: string, title: string, style: DrawingStyle) => {
     await updateDrawing(id, { title, style });
     setEditingDrawing(null);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setLocalDrawings((items) => {
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over.id);
+        
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        reorderDrawings(newItems.map(item => item.id));
+        return newItems;
+      });
+    }
   };
 
   if (isLoading) {
@@ -96,18 +137,22 @@ export const DrawingsPage = () => {
            <p className="text-surface-500 max-w-xs mt-1">Try refining your search terms or filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredDrawings.map((drawing) => (
-            <DrawingCard 
-              key={drawing.id} 
-              drawing={drawing} 
-              onView={handleViewOnMap}
-              onEdit={setEditingDrawing}
-              onDelete={deleteDrawing}
-              projectName={getProjectName(drawing.projectId)}
-            />
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={filteredDrawings.map((d) => d.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredDrawings.map((drawing) => (
+                <SortableDrawingCard 
+                  key={drawing.id} 
+                  drawing={drawing} 
+                  onView={handleViewOnMap}
+                  onEdit={setEditingDrawing}
+                  onDelete={deleteDrawing}
+                  projectName={getProjectName(drawing.projectId)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <EditDrawingDialog 

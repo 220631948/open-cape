@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/src/lib/firebase';
 
 export interface SourceRecord {
@@ -15,7 +15,7 @@ export interface SourceRecord {
   verifiedAt?: any;
   isPublic: boolean;
   purposeDesc: string;
-  verificationStatus?: 'verified-integration' | 'pending-integration' | 'metadata-only' | 'simulated';
+  verificationStatus?: 'verified-integration' | 'pending-integration' | 'metadata-only';
 }
 
 // Fallback seed data so the UI remains robust regardless of Firestore being seeded.
@@ -99,6 +99,32 @@ export const VERIFIED_SOURCES: SourceRecord[] = [
     verificationStatus: 'verified-integration'
   },
   {
+    id: 'wcgp-cadastre',
+    sourceId: 'wcgp-cadastre',
+    name: 'Western Cape Government Open Data',
+    category: 'cadastre',
+    websiteUrl: 'https://westerncape.gov.za/',
+    licenseNote: 'Western Cape Open Data License',
+    coverage: 'Western Cape Province',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Province-wide cadastral and contextual layers.',
+    verificationStatus: 'verified-integration'
+  },
+  {
+    id: 'wcgp-zoning',
+    sourceId: 'wcgp-zoning',
+    name: 'Western Cape Zoning',
+    category: 'zoning',
+    websiteUrl: 'https://westerncape.gov.za/',
+    licenseNote: 'Western Cape Open Data License',
+    coverage: 'Western Cape Province',
+    qualityBadge: 'Authoritative',
+    isPublic: true,
+    purposeDesc: 'Province-wide zoning information.',
+    verificationStatus: 'verified-integration'
+  },
+  {
     id: 'deeds_registration',
     sourceId: 'deeds_registration',
     name: 'SA Deeds Registration',
@@ -109,40 +135,39 @@ export const VERIFIED_SOURCES: SourceRecord[] = [
     qualityBadge: 'Authoritative',
     isPublic: true,
     purposeDesc: 'Official registry reference for future lawful verification workflows.',
-    verificationStatus: 'simulated'
+    verificationStatus: 'metadata-only'
   },
   {
     id: 'property24_property_data',
     sourceId: 'property24_property_data',
-    name: 'Property24 Property Data',
+    name: 'Property24 Index',
     category: 'market',
     websiteUrl: 'https://www.property24.com/',
     licenseNote: 'Commercial License Required',
     coverage: 'South Africa',
-    qualityBadge: 'Commercial Verified',
+    qualityBadge: 'Commercial / Reference',
     isPublic: false,
-    purposeDesc: 'Commercial market-data reference for future lawful integration.',
-    verificationStatus: 'simulated'
+    purposeDesc: 'Commercial market-data reference for contextual analysis.',
+    verificationStatus: 'metadata-only'
   },
   {
     id: 'property24_development_api',
     sourceId: 'property24_development_api',
-    name: 'Property24 Dev API',
+    name: 'Property24 Dev Sandbox',
     category: 'market',
     websiteUrl: 'https://www.property24.com/',
     licenseNote: 'Commercial License Required',
     coverage: 'South Africa',
-    qualityBadge: 'Commercial Verified',
+    qualityBadge: 'Sandbox Environment',
     isPublic: false,
-    purposeDesc: 'Commercial development API reference for future lawful integration.',
-    verificationStatus: 'simulated'
+    purposeDesc: 'Integration sandbox for commercial development API.',
+    verificationStatus: 'pending-integration'
   }
 ];
 
 export function useSourceCatalog() {
   const [sources, setSources] = useState<SourceRecord[]>(VERIFIED_SOURCES);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchSources = useCallback(async () => {
     setIsLoading(true);
@@ -166,5 +191,5 @@ export function useSourceCatalog() {
     return sources.find(s => s.sourceId === id || s.id === id);
   };
 
-  return { sources, isLoading, error, fetchSources, getSourceById };
+  return { sources, isLoading, fetchSources, getSourceById };
 }

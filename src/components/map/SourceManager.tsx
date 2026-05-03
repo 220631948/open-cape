@@ -5,9 +5,10 @@ import { MapSourceContract } from '../../contracts/MapSourceContract';
 interface SourceManagerProps {
   sources: MapSourceContract[];
   activeLayerIds: string[];
+  layerOpacities?: Record<string, number>;
 }
 
-export const SourceManager: React.FC<SourceManagerProps> = ({ sources, activeLayerIds }) => {
+export const SourceManager: React.FC<SourceManagerProps> = ({ sources, activeLayerIds, layerOpacities = {} }) => {
   return (
     <>
       {sources.map(source => {
@@ -17,11 +18,21 @@ export const SourceManager: React.FC<SourceManagerProps> = ({ sources, activeLay
         return (
           <Source key={source.id} id={source.id} {...source.mapLibreSource}>
             {source.isRenderable && source.mapLibreLayers.map(layer => {
-              // Note: We could add logic here to filter layers based on activeLayerIds 
-              // if the contract defined multiple sub-layers.
-              // For now we assume if the source is active, its layers should be rendered.
               if (activeLayerIds.includes(source.id)) {
-                 return <Layer key={layer.id} {...layer} />;
+                 const opacity = layerOpacities[source.id] ?? 1;
+                 const typeOpacityKey = 
+                    layer.type === 'raster' ? 'raster-opacity' :
+                    layer.type === 'fill' ? 'fill-opacity' :
+                    layer.type === 'line' ? 'line-opacity' :
+                    layer.type === 'circle' ? 'circle-opacity' :
+                    layer.type === 'symbol' ? 'icon-opacity' : null;
+
+                 const updatedPaint = { ...layer.paint };
+                 if (typeOpacityKey && opacity !== 1) {
+                    updatedPaint[typeOpacityKey as keyof typeof updatedPaint] = opacity;
+                 }
+
+                 return <Layer key={layer.id} {...layer} paint={updatedPaint} />;
               }
               return null;
             })}

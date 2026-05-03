@@ -151,8 +151,7 @@ export const DrawingStyleEditor: React.FC<DrawingStyleEditorProps> = ({
               stroke: '#3b82f6',
               fill: '#3b82f6',
               fillOpacity: 0.2,
-              strokeWidth: 2,
-              pattern: 'solid'
+              strokeWidth: 2
             })} 
             className="flex-1 h-9 text-xs"
           >
