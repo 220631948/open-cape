@@ -760,7 +760,7 @@ async function startServer() {
     });
 
     // Middleware 3: SPA Fallback - Serve the built index.html for ALL other non-file routes
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       // If the request looks like a missing file (has an extension), don't serve index.html
       if (req.path.includes('.') && !req.path.endsWith('.html')) {
         return res.status(404).send('Asset not found');
@@ -778,9 +778,9 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
-
-  // Background "Cloud Function" Triggers
-  // Removed to avoid IAM permission errors
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("[FATAL] Server failed to start:", err);
+  process.exit(1);
+});

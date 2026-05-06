@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { collection, query, where, doc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { setDoc, updateDoc } from '../lib/safeFirestore';
 import { useAuth } from '../contexts/AuthContext';
 
 export interface WatchlistFilters {
@@ -30,13 +31,13 @@ export interface MatchLog {
 }
 
 export function useWatchlists() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
   const [matchLogs, setMatchLogs] = useState<MatchLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!user) {
       setWatchlists([]);
       setMatchLogs([]);
       setIsLoading(false);
@@ -45,12 +46,12 @@ export function useWatchlists() {
 
     const qw = query(
       collection(db, 'watchlists'),
-      where('ownerUid', '==', currentUser.uid)
+      where('ownerUid', '==', user.uid)
     );
 
     const qm = query(
       collection(db, 'match_logs'),
-      where('ownerUid', '==', currentUser.uid)
+      where('ownerUid', '==', user.uid)
     );
 
     const unsubs: (() => void)[] = [];
@@ -71,12 +72,12 @@ export function useWatchlists() {
     return () => {
       unsubs.forEach(fn => fn());
     };
-  }, [currentUser]);
+  }, [user]);
 
   const createWatchlist = async (name: string, filters: WatchlistFilters) => {
-    if (!currentUser) return;
+    if (!user) return;
     const newDocParams = {
-      ownerUid: currentUser.uid,
+      ownerUid: user.uid,
       name,
       filters,
       createdAt: new Date().toISOString(),
@@ -90,7 +91,7 @@ export function useWatchlists() {
   };
 
   const updateWatchlist = async (id: string, updates: Partial<Watchlist>) => {
-    if (!currentUser) return;
+    if (!user) return;
     await updateDoc(doc(db, 'watchlists', id), {
       ...updates,
       updatedAt: new Date().toISOString()
@@ -98,12 +99,12 @@ export function useWatchlists() {
   };
 
   const deleteWatchlist = async (id: string) => {
-    if (!currentUser) return;
+    if (!user) return;
     await deleteDoc(doc(db, 'watchlists', id));
   };
 
   const markMatchLogRead = async (id: string) => {
-    if (!currentUser) return;
+    if (!user) return;
     await updateDoc(doc(db, 'match_logs', id), { read: true });
   };
 

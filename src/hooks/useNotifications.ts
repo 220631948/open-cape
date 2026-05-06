@@ -4,18 +4,18 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function useNotifications() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!user) {
       setUnreadCount(0);
       return;
     }
 
     const q = query(
       collection(db, 'match_logs'),
-      where('ownerUid', '==', currentUser.uid),
+      where('ownerUid', '==', user.uid),
       where('read', '==', false)
     );
 
@@ -24,7 +24,7 @@ export function useNotifications() {
     }, (err) => {
       console.error("Notification listener error:", err);
     });
-  }, [currentUser]);
+  }, [user]);
 
   return { unreadCount };
 }

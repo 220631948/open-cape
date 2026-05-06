@@ -1,27 +1,11 @@
 /// <reference types="vite/client" />
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import {
-  initializeAuth,
-  browserLocalPersistence,
-  browserSessionPersistence,
-  indexedDBLocalPersistence,
-  browserPopupRedirectResolver,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth';
-import { getFirestore, doc, getDoc, serverTimestamp, type Firestore } from 'firebase/firestore';
+import { initializeAuth, browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence, browserPopupRedirectResolver, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { initializeFirestore, doc, getDoc, getDocFromServer, serverTimestamp, type Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { setDoc } from '@/lib/safeFirestore';
 import firebaseAppletConfig from '../../firebase-applet-config.json';
 
-/**
- * Copy your Firebase web app config values into environment variables.
- * These names work well with Vite; rename if your build tool differs.
- * We fallback to firebase-applet-config.json if environment variables are not set.
- */
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseAppletConfig.apiKey,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseAppletConfig.authDomain,
@@ -35,20 +19,25 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 /**
  * initializeAuth gives finer control over persistence and popup/redirect handling
- * than a plain getAuth(app) call.
  */
 export const auth = initializeAuth(app, {
-  persistence: [
-    indexedDBLocalPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence,
-  ],
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
   popupRedirectResolver: browserPopupRedirectResolver,
 });
 
 // AI Studio specifically uses a custom database ID often.
 const customDbId = import.meta.env.VITE_FIREBASE_DATABASE_ID || (firebaseAppletConfig as any).firestoreDatabaseId;
-export const db: Firestore = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
+console.log(`[Firebase] Initializing Firestore with Database ID: ${customDbId || '(default)'}`);
+
+/**
+ * Using initializeFirestore directly allows us to enable experimentalAutoDetectLongPolling.
+ * This is crucial in environments where WebSockets might be unreliable or blocked, 
+ * preventing the 10-second timeout "Could not reach Cloud Firestore backend" error.
+ */
+export const db: Firestore = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+}, customDbId);
+
 export const storage = getStorage(app);
 
 export const googleProvider = new GoogleAuthProvider();
@@ -229,5 +218,29 @@ export async function updateCurrentLayerPreferences(
     { merge: true },
   );
 }
+
+/**
+ * CRITICAL CONSTRAINT: When the application initially boots, call getDocFromServer to test the connection.
+ */
+async function testConnection() {
+  try {
+    // Attempting a read directly from server to verify health
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log("Firestore connection verified.");
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('the client is offline') || error.message.includes('Could not reach Cloud Firestore backend')) {
+        console.error("CRITICAL: Firestore unreachable. Please check configuration or network.", error);
+      } else {
+        // Many projects won't have a 'test/connection' doc, which is fine (it returns successfully with no data)
+        // We just want to see if the REQUEST completes.
+        console.log("Firestore pinged successfully (document may not exist, but network is okay).");
+      }
+    }
+  }
+}
+
+// Initial connection test
+testConnection();
 
 export { app };

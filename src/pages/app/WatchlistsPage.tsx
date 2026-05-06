@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWatchlists } from '@/hooks/useWatchlists';
-import { Bell, AlertTriangle, Search, Plus, Trash2, Edit2, Activity, MapPin } from 'lucide-react';
+import { Bell, Search, Plus, Trash2, Activity, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
