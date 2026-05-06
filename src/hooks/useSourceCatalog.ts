@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/src/lib/firebase';
+import { db } from '@/lib/firebase';
 
 export interface SourceRecord {
   id: string;

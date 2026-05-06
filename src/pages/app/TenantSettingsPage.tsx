@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useProfile } from '@/src/contexts/useProfile';
-import { getTenant, updateTenant } from '@/src/lib/tenancy';
+import { useProfile } from '@/contexts/useProfile';
+import { getTenant, updateTenant } from '@/lib/tenancy';
 import { Shield, Building2, UserPlus, Save, AlertTriangle } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 export const TenantSettingsPage: React.FC = () => {
   const { profile } = useProfile();

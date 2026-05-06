@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { getLiveErfRecordById } from '@/src/source_connectors/cctOpenDataClient';
-import { ProvenanceCard } from '@/src/components/ui/ProvenanceCard';
-import { Skeleton } from '@/src/components/ui/Skeleton';
-import { useProjects } from '@/src/hooks/useProjects';
+import { getLiveErfRecordById } from '@/source_connectors/cctOpenDataClient';
+import { ProvenanceCard, Skeleton } from '@/components/ui';
 
 const ComparisonCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
   <div className="bg-white border border-surface-200 rounded-lg p-4 shadow-sm h-[200px] overflow-y-auto flex flex-col gap-3">

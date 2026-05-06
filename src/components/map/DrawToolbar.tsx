@@ -12,12 +12,13 @@ import {
   LayoutDashboard,
   Plus,
   Minus,
-  Compass
+  Compass,
+  Hexagon
 } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { useMap } from 'react-map-gl/maplibre';
 
-export type DrawMode = 'select' | 'point' | 'line' | 'polygon' | 'edit';
+export type DrawMode = 'select' | 'point' | 'line' | 'polygon' | 'square' | 'edit' | 'radius';
 
 interface DrawToolbarProps {
   activeMode: DrawMode;
@@ -63,6 +64,7 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
   };
 
   return (
+    <>
     <div className={cn(
       "flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md border border-surface-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
       className
@@ -102,10 +104,22 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
           onClick={() => onModeChange('line')} 
         />
         <ToolbarButton 
-          icon={Square} 
+          icon={Hexagon} 
           label="Draw Polygon" 
           active={activeMode === 'polygon'} 
           onClick={() => onModeChange('polygon')} 
+        />
+        <ToolbarButton 
+          icon={Square}
+          label="Draw Square" 
+          active={activeMode === 'square'} 
+          onClick={() => onModeChange('square')} 
+        />
+        <ToolbarButton 
+          icon={CircleDashed} 
+          label="Radius Analysis" 
+          active={activeMode === 'radius'} 
+          onClick={() => onModeChange('radius')} 
         />
       </div>
 
@@ -176,6 +190,20 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
         </>
       )}
     </div>
+
+    {activeMode !== 'select' && activeMode !== 'edit' && (
+      <div className="absolute right-full top-12 mr-4 p-3 bg-white/95 backdrop-blur-md border border-surface-200 rounded-xl w-48 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-surface-500 mb-1">How to use</p>
+        <p className="text-xs text-surface-700 leading-relaxed">
+          {activeMode === 'point' && "Click on the map to place a point. You can add multiple points."}
+          {activeMode === 'line' && "Click to add points to your line. Double-click or press Enter to finish."}
+          {activeMode === 'polygon' && "Click to draw a shape. Click the first point again, double-click, or press Enter to finish."}
+          {activeMode === 'square' && "Click and drag to draw a square/rectangle. Release to finish."}
+          {activeMode === 'radius' && "Click center point to start radius analysis. Then select radius size."}
+        </p>
+      </div>
+    )}
+    </>
   );
 };
 

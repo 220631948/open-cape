@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { X, MapPin, ExternalLink, ShieldCheck, Crosshair, FileText, Download } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { cn } from '@/src/lib/utils';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { useProfile } from '@/src/contexts/useProfile';
+import { X, ExternalLink, ShieldCheck, Crosshair, FileText, Download } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
+import { useProfile } from '@/contexts/useProfile';
 
 interface OsintDrawerProps {
   className?: string;
@@ -112,21 +111,22 @@ export const OsintDrawer: React.FC<OsintDrawerProps> = ({ className, isOpen, onC
                  </div>
               </div>
 
-              {profile?.role === 'analyst' && (
-                 <div className="bg-white p-3 rounded-md border border-surface-200 shadow-sm flex flex-col gap-2">
-                    <h3 className="text-xs font-semibold text-surface-900 uppercase tracking-wider mb-1">Analyst Actions</h3>
-                    <p className="text-[10px] text-surface-600 mb-1">Select an action to augment or export this record.</p>
-                    <Button onClick={onInitiateLocationCorrection} className="w-full text-xs justify-start" variant="primary">
-                       <Crosshair className="h-3 w-3 mr-2" /> Correct Location
-                    </Button>
-                    <Button className="w-full text-xs justify-start" variant="outline" onClick={() => alert('Add Note functionality initiated')}>
-                       <FileText className="h-3 w-3 mr-2 text-indigo-500" /> Add Investigation Note
-                    </Button>
-                    <Button className="w-full text-xs justify-start" variant="outline" onClick={() => window.print()}>
-                       <Download className="h-3 w-3 mr-2 text-rose-500" /> Export PDF Report
-                    </Button>
+              <div className="bg-white p-3 rounded-md border border-surface-200 shadow-sm flex flex-col gap-2">
+                 <h3 className="text-xs font-semibold text-surface-900 uppercase tracking-wider mb-1">Analyst Actions</h3>
+                 <p className="text-[10px] text-surface-600 mb-1">Select an action to augment or export this record.</p>
+                 <Button onClick={onInitiateLocationCorrection} className="w-full text-xs justify-start" variant="primary">
+                    <Crosshair className="h-3 w-3 mr-2" /> Correct Location
+                 </Button>
+                 <div className="p-2 border border-indigo-100 bg-indigo-50 rounded text-[10px] text-indigo-700 leading-tight mb-1">
+                    Click "Correct Location" to open the location correction dialog.
                  </div>
-              )}
+                 <Button className="w-full text-xs justify-start" variant="outline" onClick={() => alert('Add Note functionality initiated')}>
+                    <FileText className="h-3 w-3 mr-2 text-indigo-500" /> Add Investigation Note
+                 </Button>
+                 <Button className="w-full text-xs justify-start" variant="outline" onClick={() => window.print()}>
+                    <Download className="h-3 w-3 mr-2 text-rose-500" /> Export PDF Report
+                 </Button>
+              </div>
            </div>
         )}
       </div>

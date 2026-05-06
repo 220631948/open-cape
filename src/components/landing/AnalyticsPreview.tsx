@@ -33,7 +33,7 @@ const AnalyticsPreview = () => {
           className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 backdrop-blur-md shadow-2xl"
         >
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1} minWidth={1}>
               <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <XAxis dataKey="name" stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={false} />

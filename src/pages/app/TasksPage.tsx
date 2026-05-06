@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useTasks, Task } from '@/src/hooks/useTasks';
-import { CheckSquare, GripVertical, Plus, Trash2, Edit2, Loader2, Play, Check, AlertTriangle, Calendar, Flag, Search } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { Card } from '@/src/components/ui/Card';
-import { Input } from '@/src/components/ui/Input';
-import { Textarea } from '@/src/components/ui/Textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/src/components/ui/Dialog';
-import { cn } from '@/src/lib/utils';
+import { useTasks, Task } from '@/hooks/useTasks';
+import { CheckSquare, GripVertical, Plus, Trash2, Edit2, Play, Check, AlertTriangle, Calendar, Flag, Search } from 'lucide-react';
+import { Button, Card, Input, Textarea, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Badge } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import {
   DndContext,
   closestCenter,
@@ -24,8 +20,6 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-import { Badge } from '@/src/components/ui/Badge';
 
 const SortableTaskItem = ({ 
   task, 
@@ -260,7 +254,18 @@ const SortableTaskItem = ({
 
 
 export const TasksPage = () => {
-  const { tasks, isLoading, createTask, updateTask, deleteTask, reorderTasks } = useTasks();
+  const { 
+    tasks, 
+    isLoading, 
+    filterPriority, 
+    setFilterPriority, 
+    sortBy, 
+    setSortBy, 
+    createTask, 
+    updateTask, 
+    deleteTask, 
+    reorderTasks 
+  } = useTasks();
   const [localTasks, setLocalTasks] = useState<Task[]>([]);
   
   // Create Form State
@@ -272,9 +277,8 @@ export const TasksPage = () => {
   const [activeParentId, setActiveParentId] = useState<string | null>(null);
 
   // Filter & Search State
-  const [filter, setFilter] = useState<'all' | 'todo' | 'in_progress' | 'done'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'todo' | 'in_progress' | 'done'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'order' | 'priority' | 'dueDate'>('order');
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -324,8 +328,8 @@ export const TasksPage = () => {
 
   const filteredTasks = localTasks
     .filter(t => {
-      // Basic status filter
-      if (filter !== 'all' && t.status !== filter) return false;
+      // Status filter
+      if (statusFilter !== 'all' && t.status !== statusFilter) return false;
       
       // Search filter
       if (searchQuery.trim()) {
@@ -336,18 +340,6 @@ export const TasksPage = () => {
       }
       
       return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'priority') {
-        const priorityScore = { high: 0, medium: 1, low: 2 };
-        return priorityScore[a.priority || 'medium'] - priorityScore[b.priority || 'medium'];
-      }
-      if (sortBy === 'dueDate') {
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      }
-      return (a.order ?? 0) - (b.order ?? 0);
     });
 
   // Organize by hierarchy
@@ -465,31 +457,53 @@ export const TasksPage = () => {
       </div>
 
       {/* Filter & Sort Controls */}
-      {!isLoading && tasks.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {(['all', 'todo', 'in_progress', 'done'] as const).map((f) => (
-              <Button 
-                key={f}
-                variant={filter === f ? 'primary' : 'secondary'} 
-                size="sm" 
-                onClick={() => setFilter(f)}
-                className={cn("capitalize whitespace-nowrap", filter !== f && "bg-surface-100 text-surface-700 border-transparent")}
-              >
-                {f === 'all' ? 'All' : f.replace('_', ' ')}
-              </Button>
-            ))}
+      {!isLoading && localTasks.length > 0 && (
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 bg-white p-3 rounded-xl border border-surface-200">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-1.5 p-1 bg-surface-50 rounded-lg border border-surface-200">
+               {(['all', 'todo', 'in_progress', 'done'] as const).map((f) => (
+                <button 
+                  key={f}
+                  onClick={() => setStatusFilter(f)}
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md transition-all", 
+                    statusFilter === f 
+                      ? "bg-white text-indigo-600 shadow-sm ring-1 ring-surface-200" 
+                      : "text-surface-400 hover:text-surface-600"
+                  )}
+                >
+                  {f === 'all' ? 'All' : f.replace('_', ' ')}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1.5 p-1 bg-surface-50 rounded-lg border border-surface-200">
+               {(['all', 'low', 'medium', 'high'] as const).map((p) => (
+                <button 
+                  key={p}
+                  onClick={() => setFilterPriority(p)}
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md transition-all", 
+                    filterPriority === p 
+                      ? "bg-white text-amber-600 shadow-sm ring-1 ring-surface-200" 
+                      : "text-surface-400 hover:text-surface-600"
+                  )}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
           
-          <div className="flex items-center gap-2 shrink-0">
-             <span className="text-xs text-surface-400 font-medium whitespace-nowrap">Sort by:</span>
+          <div className="flex items-center gap-2 mt-2 lg:mt-0">
+             <span className="text-[10px] font-bold uppercase tracking-widest text-surface-400 whitespace-nowrap">Sort:</span>
              <select 
-               className="text-xs bg-white border border-surface-200 rounded-md py-1.5 pl-2 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+               className="text-[11px] font-medium bg-surface-50 border border-surface-200 rounded-lg py-1.5 pl-2 pr-8 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                value={sortBy}
                onChange={(e) => setSortBy(e.target.value as 'order' | 'priority' | 'dueDate')}
              >
                <option value="order">Custom Order</option>
-               <option value="priority">Priority</option>
+               <option value="priority">Priority Status</option>
                <option value="dueDate">Due Date</option>
              </select>
           </div>
@@ -498,12 +512,13 @@ export const TasksPage = () => {
 
       {/* Task List */}
       <div className="flex-1">
-        {isLoading && localTasks.length === 0 ? (
-          <div className="flex items-center justify-center p-12 text-surface-400">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
-        ) : localTasks.length === 0 && !isCreating ? (
-          <div className="text-center p-12 bg-surface-50 border border-surface-200 rounded-xl border-dashed">
+        {localTasks.length === 0 && !isCreating ? (
+          <div className="text-center p-12 bg-surface-50 border border-surface-200 rounded-xl border-dashed relative overflow-hidden">
+            {isLoading && (
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-indigo-500/20">
+                 <div className="h-full bg-indigo-500 w-1/3 animate-[slide_1.5s_ease-in-out_infinite]" />
+              </div>
+            )}
             <CheckSquare className="w-12 h-12 text-surface-300 mx-auto mb-3" />
             <h3 className="text-sm font-semibold text-surface-900">No tasks yet</h3>
             <p className="text-xs text-surface-500 mt-1 mb-4">Add tasks to keep track of your work.</p>
@@ -515,7 +530,7 @@ export const TasksPage = () => {
           <div className="text-center p-12 text-surface-500 bg-surface-50 rounded-xl">
              <Search className="w-8 h-8 text-surface-300 mx-auto mb-2 opacity-50" />
              <p className="text-sm">No tasks match your current filters.</p>
-             <Button variant="link" size="sm" onClick={() => { setFilter('all'); setSearchQuery(''); }} className="mt-1 text-indigo-600">
+             <Button variant="link" size="sm" onClick={() => { setStatusFilter('all'); setFilterPriority('all'); setSearchQuery(''); }} className="mt-1 text-indigo-600 font-bold uppercase tracking-widest text-[10px]">
                Clear all filters
              </Button>
           </div>

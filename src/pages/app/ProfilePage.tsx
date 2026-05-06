@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { Badge } from '@/src/components/ui/Badge';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/Badge';
 import { updateProfile } from 'firebase/auth';
-import { useProfile } from '@/src/contexts/useProfile';
-import { useLayerPreferences } from '@/src/contexts/useLayerPreferences';
+import { useProfile } from '@/contexts/useProfile';
+import { useLayerPreferences } from '@/contexts/useLayerPreferences';
 import { doc, serverTimestamp } from 'firebase/firestore';
-import { updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { Check, Edit2, Map, Layers, Bell } from 'lucide-react';
-import { VERIFIED_SOURCES } from '@/src/hooks/useSourceCatalog';
+import { updateDoc } from '@/lib/safeFirestore';;
+import { storage, db } from '@/lib/firebase';
+import { Edit2, Map, Layers, Bell } from 'lucide-react';
+import { VERIFIED_SOURCES } from '@/hooks/useSourceCatalog';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export const ProfilePage = () => {
   const { user } = useAuth();
@@ -57,6 +58,45 @@ export const ProfilePage = () => {
       setPreferredLayers(layerPrefs?.defaultViews || profile?.preferredLayers || []);
     }
   }, [layerPrefs, profile, isEditingPrefs]);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    // Quick validation
+    if (!file.type.startsWith('image/')) {
+       setError('Please select a valid image file');
+       return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+       setError('Image must be less than 2MB');
+       return;
+    }
+
+    setIsSaving(true);
+    setError('');
+    
+    try {
+       const fileRef = ref(storage, `avatars/${user.uid}/${Date.now()}_${file.name}`);
+       await uploadBytes(fileRef, file);
+       const url = await getDownloadURL(fileRef);
+       
+       await updateProfile(user, { photoURL: url });
+       
+       // Update profile doc
+       await updateFirestoreProfile({ photoURL: url } as any);
+       
+       setSuccess('Avatar updated successfully');
+    } catch (err: any) {
+       console.error(err);
+       setError('Failed to upload avatar: ' + err.message);
+    } finally {
+       setIsSaving(false);
+       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSaveIdentity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,13 +213,25 @@ export const ProfilePage = () => {
         </CardHeader>
         <CardContent>
           <div className="p-6 bg-surface-50 border border-surface-200 rounded-xl flex flex-col md:flex-row gap-6 items-start md:items-center">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt={user.displayName || 'Avatar'} className="h-20 w-20 rounded-full border-4 border-white shadow-sm" />
-            ) : (
-              <div className="h-20 w-20 rounded-full bg-surface-700 text-white flex items-center justify-center text-2xl font-bold shadow-sm shrink-0">
-                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+            <div className="relative group cursor-pointer shrink-0" onClick={() => !isSaving && fileInputRef.current?.click()}>
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt={user.displayName || 'Avatar'} className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-sm transition-opacity group-hover:opacity-80" />
+              ) : (
+                <div className="h-20 w-20 rounded-full bg-surface-700 text-white flex items-center justify-center text-2xl font-bold shadow-sm transition-opacity group-hover:opacity-80">
+                  {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Edit2 className="h-5 w-5 text-white" />
               </div>
-            )}
+              <input 
+                 type="file" 
+                 ref={fileInputRef} 
+                 onChange={handleAvatarSelect} 
+                 accept="image/*" 
+                 className="hidden" 
+              />
+            </div>
             
             <div className="flex-1 space-y-3 w-full">
               {!isEditing ? (

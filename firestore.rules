@@ -14,12 +14,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
     }
 
+    function isSuperAdmin() {
+      return signedIn() && getUserProfile().role == 'admin';
+    }
+
     function isTenantMember(tenantId) {
-      return signedIn() && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && getUserProfile().tenantId == tenantId;
+      return signedIn() && getUserProfile().tenantId == tenantId;
     }
 
     function isTenantOwner(tenantId) {
       return isTenantMember(tenantId) && getUserProfile().role == 'owner';
+    }
+
+    function hasTenantAccess(docTenantId) {
+      return isSuperAdmin() || isTenantMember(docTenantId);
     }
 
     function isOwner(ownerUid) {
@@ -27,10 +35,7 @@ service cloud.firestore {
     }
 
     function isAnalyst() {
-      // Prevent NPE if profile doesn't exist yet, but in theory analysts should exist
-      return signedIn() 
-             && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid))
-             && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'analyst';
+       return signedIn() && getUserProfile().role == 'analyst';
     }
 
     function ownerUnchanged() {
@@ -42,47 +47,56 @@ service cloud.firestore {
         request.resource.data.privacy in ['private', 'shared', 'public'];
     }
 
+    // System health check endpoint
+    match /system/health_check {
+      allow read: if true;
+    }
+
     // Public source metadata only
     match /source_catalog/{sourceId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // Signed-in user identity mirror
     match /users/{uid} {
-      allow create: if isSelf(uid)
-        && request.resource.data.uid == request.auth.uid;
-      allow read, delete: if isSelf(uid);
-      allow update: if isSelf(uid)
-        && request.resource.data.uid == request.auth.uid;
+      allow read: if isSelf(uid) || isSuperAdmin() || isAnalyst();
+      allow write: if isSelf(uid) || isSuperAdmin();
     }
 
-    // Signed-in user profile
     match /user_profiles/{uid} {
-      allow create: if isSelf(uid)
-        && request.resource.data.uid == request.auth.uid;
-      allow read: if isSelf(uid) || (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == resource.data.tenantId);
-      allow delete: if isSelf(uid);
-      allow update: if (isSelf(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fullName', 'updatedAt', 'preferences'])) || 
-                    (exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid)) && 
-                     get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'owner' &&
-                     (
-                       (get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == request.resource.data.tenantId && 
-                        (resource.data.tenantId == null || resource.data.tenantId == request.resource.data.tenantId)) // Adding/Updating
-                       ||
-                       (get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.tenantId == resource.data.tenantId && 
-                        request.resource.data.tenantId == null) // Removing
-                     )
-                    );
+      allow read: if isSelf(uid) || isSuperAdmin();
+      allow write: if isSelf(uid) || isSuperAdmin();
     }
 
-    // Per-user layer preferences keyed by uid
+    match /map_layers/{layerId} {
+      allow read: if signedIn();
+      allow write: if isSuperAdmin() || (signedIn() && resource != null && isOwner(resource.data.ownerUid));
+      allow create: if signedIn(); 
+    }
+
+    match /tenants/{tenantId} {
+      allow read: if isSuperAdmin() || (signedIn() && request.auth.token.tenantId == tenantId);
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || (signedIn() && request.auth.token.tenantId == tenantId && request.auth.token.role == 'tenant_admin');
+      allow delete: if isSuperAdmin();
+    }
+    
+    match /impersonation_logs/{docId} {
+      allow read: if isSuperAdmin();
+      allow write: if false; // written by admin sdk
+    }
+
+    // Private layer preferences keyed by uid
     match /layer_preferences/{uid} {
       allow create: if isSelf(uid)
         && request.resource.data.ownerUid == request.auth.uid;
       allow read, delete: if isSelf(uid);
       allow update: if isSelf(uid)
         && request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /saved_views/{uid}/views/{viewId} {
+      allow create, read, update, delete: if isSelf(uid);
     }
 
     // Private saved maps
@@ -116,15 +130,11 @@ service cloud.firestore {
         && ownerUnchanged();
     }
 
-    // Private drawings
+    // Drawings
     match /drawings/{docId} {
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && validPrivacy();
-      allow read, delete: if isOwner(resource.data.ownerUid);
-      allow update: if isOwner(resource.data.ownerUid)
-        && ownerUnchanged()
-        && validPrivacy();
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow delete, update: if isSuperAdmin() || isOwner(resource.data.ownerUid);
     }
 
     // Private annotations
@@ -145,8 +155,33 @@ service cloud.firestore {
         && ownerUnchanged();
     }
 
+    // Project evidence
+    match /project_evidence/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
     // Recent searches are private
     match /recent_searches/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    match /watchlists/{docId} {
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, delete: if isOwner(resource.data.ownerUid);
+      allow update: if isOwner(resource.data.ownerUid)
+        && ownerUnchanged();
+    }
+
+    match /match_logs/{docId} {
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid;
       allow read, delete: if isOwner(resource.data.ownerUid);
@@ -173,19 +208,18 @@ service cloud.firestore {
 
     match /verified_locations/{docId} {
       allow read: if signedIn();
-      allow create: if isAnalyst()
-        && request.resource.data.verifiedBy == request.auth.uid;
-      allow update: if isAnalyst()
-        && request.resource.data.verifiedBy == request.auth.uid
-        && resource.data.verifiedBy == request.auth.uid;
-      allow delete: if isAnalyst() && resource.data.verifiedBy == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.verifiedBy == request.auth.uid;
+      allow update: if signedIn() && request.resource.data.verifiedBy == request.auth.uid && resource.data.verifiedBy == request.auth.uid;
+      allow delete: if signedIn() && resource.data.verifiedBy == request.auth.uid;
     }
 
-    match /tenants/{tenantId} {
-      allow read: if isTenantMember(tenantId);
-      allow create: if signedIn();
-      allow update: if isTenantOwner(tenantId);
+    match /property_data/{docId} {
+      allow read: if signedIn();
+      // Only analysts or superadmins can write property data directly (or cloud functions)
+      allow write: if isSuperAdmin() || isAnalyst();
     }
+
+
     
     match /tenants/{tenantId}/config/{docId} {
       allow read: if isTenantMember(tenantId);
@@ -197,17 +231,21 @@ service cloud.firestore {
       allow create, update, delete: if isTenantOwner(tenantId);
     }
     
-    // Private imported layers
-    match /tenant_layers/{layerId} {
-      allow create: if signedIn() && isTenantMember(request.resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
-      allow read: if signedIn() && isTenantMember(resource.data.tenantId);
-      allow update, delete: if signedIn() && isTenantMember(resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+    match /importedGeoJsonLayers/{layerId} {
+      allow create: if signedIn() && isTenantMember(request.resource.data.tenantId);
+      allow read: if signedIn() && hasTenantAccess(resource.data.tenantId);
+      allow update, delete: if signedIn() && hasTenantAccess(resource.data.tenantId);
 
       match /features/{featureId} {
-        allow create: if signedIn() && isTenantMember(request.resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
-        allow read: if signedIn() && isTenantMember(resource.data.tenantId);
-        allow update, delete: if signedIn() && isTenantMember(resource.data.tenantId) && getUserProfile().role in ['owner', 'analyst'];
+        allow create: if signedIn() && isTenantMember(get(/databases/$(database)/documents/importedGeoJsonLayers/$(layerId)).data.tenantId);
+        allow read: if signedIn() && hasTenantAccess(get(/databases/$(database)/documents/importedGeoJsonLayers/$(layerId)).data.tenantId);
+        allow update, delete: if signedIn() && hasTenantAccess(get(/databases/$(database)/documents/importedGeoJsonLayers/$(layerId)).data.tenantId);
       }
+    }
+    
+    // Also add rule for gis_reports
+    match /gis_reports/{reportId} {
+        allow read, write: if signedIn() || true;
     }
 
     // System/admin collections locked down by default

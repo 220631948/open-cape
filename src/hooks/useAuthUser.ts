@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { onAuthUserChanged } from '@/src/lib/firebase';
+import { onAuthUserChanged } from '@/lib/firebase';
 
 /**
  * A custom hook to access the current authenticated user.

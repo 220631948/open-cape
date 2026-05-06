@@ -90,7 +90,7 @@ export async function detectOGCService(url: string): Promise<OGCServiceInfo | nu
     }
 
     return null;
-  } catch (err) {
-    throw new Error('Service detection failed or timed out: ' + (err as Error).message);
+  } catch (err: any) {
+    throw new Error('Service detection failed or timed out: ' + err.message, { cause: err });
   }
 }

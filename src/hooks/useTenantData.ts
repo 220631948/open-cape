@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { db, auth } from '../lib/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
-import { addDoc } from '@/src/lib/safeFirestore';
+import { addDoc } from '@/lib/safeFirestore';
 
 export interface TenantLayer {
   id: string;

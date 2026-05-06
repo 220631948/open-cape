@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEnvironmentalContext } from '@/src/contexts/EnvironmentalContext';
+import { useEnvironmentalContext } from '@/contexts/EnvironmentalContext';
 import { Layers } from 'lucide-react';
 
 export const EnvironmentalLegend: React.FC = () => {

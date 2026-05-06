@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 export const ThreeDMapBackground: React.FC<{ className?: string }> = ({ className }) => {
   const { scrollYProgress } = useScroll();

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, KeyboardEvent } from 'react';
 import { Search, Loader2, MapPin, Clock, X } from 'lucide-react';
-import { Input } from '@/src/components/ui/Input';
-import { useErfSearch, ErfRecord } from '@/src/hooks/useErfSearch';
-import { cn } from '@/src/lib/utils';
+import { Input } from '@/components/ui/Input';
+import { useErfSearch, ErfRecord } from '@/hooks/useErfSearch';
+import { cn } from '@/lib/utils';
 import { useDebounce } from 'use-debounce';
 
 interface MapSearchProps {

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, signInWithGoogle as firebaseSignInWithGoogle, signOutUser, ensureUserDocuments } from '@/src/lib/firebase';
+import { auth, signInWithGoogle as firebaseSignInWithGoogle, signOutUser, ensureUserDocuments } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // ensureUserDocuments handles idempotency
-        // Fire and forget to avoid infinite loading if Firestore is offline/unreachable
         ensureUserDocuments(currentUser).catch(err => console.warn('Could not sync user docs on auth state change:', err));
       }
       setUser(currentUser);
@@ -31,30 +29,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     await firebaseSignInWithGoogle();
-  };
+  }, []);
 
-  const signUpWithEmail = async (email: string, pass: string) => {
+  const signUpWithEmail = useCallback(async (email: string, pass: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, pass);
     if (result.user) {
       ensureUserDocuments(result.user).catch(err => console.warn('Could not sync user docs on sign up:', err));
     }
-  };
+  }, []);
   
-  const signInWithEmail = async (email: string, pass: string) => {
+  const signInWithEmail = useCallback(async (email: string, pass: string) => {
     const result = await signInWithEmailAndPassword(auth, email, pass);
     if (result.user) {
       ensureUserDocuments(result.user).catch(err => console.warn('Could not sync user docs on sign in:', err));
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await signOutUser();
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    user,
+    loading,
+    signInWithGoogle,
+    signUpWithEmail,
+    signInWithEmail,
+    logout
+  }), [user, loading, signInWithGoogle, signUpWithEmail, signInWithEmail, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signUpWithEmail, signInWithEmail, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

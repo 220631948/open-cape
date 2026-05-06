@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield, ShieldAlert, Server } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
-import { SourceRecord } from '@/src/hooks/useSourceCatalog';
+import { cn } from '@/lib/utils';
+import { SourceRecord } from '@/hooks/useSourceCatalog';
 
 interface SourceBadgeProps {
   source: SourceRecord;

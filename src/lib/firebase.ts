@@ -13,7 +13,8 @@ import {
   type User,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, serverTimestamp, type Firestore } from 'firebase/firestore';
-import { setDoc } from '@/src/lib/safeFirestore';;
+import { getStorage } from 'firebase/storage';
+import { setDoc } from '@/lib/safeFirestore';
 import firebaseAppletConfig from '../../firebase-applet-config.json';
 
 /**
@@ -48,6 +49,7 @@ export const auth = initializeAuth(app, {
 // AI Studio specifically uses a custom database ID often.
 const customDbId = import.meta.env.VITE_FIREBASE_DATABASE_ID || (firebaseAppletConfig as any).firestoreDatabaseId;
 export const db: Firestore = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
+export const storage = getStorage(app);
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('profile');

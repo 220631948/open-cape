@@ -1,12 +1,12 @@
-/* eslint-disable no-restricted-syntax */
+ 
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Loader2, Trash2 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Card';
-import { Input } from '@/src/components/ui/Input';
-import { Button } from '@/src/components/ui/Button';
-import { geminiService } from '@/src/services/geminiService';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { geminiService } from '@/services/geminiService';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface ChatMessage {
   id: string;
@@ -18,9 +18,10 @@ interface ChatMessage {
 interface MarketChatPanelProps {
   onClose: () => void;
   viewportStats: Record<string, unknown>; // Ideally typed based on map bounds
+  getVisibleFeatures?: () => Record<string, any>[];
 }
 
-export const MarketChatPanel: React.FC<MarketChatPanelProps> = ({ onClose, viewportStats }) => {
+export const MarketChatPanel: React.FC<MarketChatPanelProps> = ({ onClose, viewportStats, getVisibleFeatures }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: '1', role: 'ai', content: 'Hello! I am your AI Market Analyst. I can answer questions based on the geographical area currently visible on your map. What would you like to know?' }
   ]);
@@ -53,7 +54,13 @@ export const MarketChatPanel: React.FC<MarketChatPanelProps> = ({ onClose, viewp
     setMessages(prev => [...prev, { id: aiMessageId, role: 'ai', content: '', isStreaming: true }]);
 
     try {
-      const stream = geminiService.streamMarketChat(userMessage.content, viewportStats);
+      const currentContext = {
+        ...viewportStats,
+        features: getVisibleFeatures ? getVisibleFeatures().slice(0, 50) : [], // limit to 50 for context size
+        note: "Top 50 feature properties visible on map",
+        chatHistory: messages.slice(-5).map(m => `${m.role}: ${m.content}`).join('\n') // Context history
+      };
+      const stream = geminiService.streamMarketChat(userMessage.content, currentContext);
       for await (const chunk of stream) {
         setMessages(prev => prev.map(msg => 
           msg.id === aiMessageId 

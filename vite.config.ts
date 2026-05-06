@@ -6,13 +6,34 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
+    base: '/',
     plugins: [react(), tailwindcss()],
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react')) return 'vendor-react';
+              if (id.includes('maplibre-gl') || id.includes('react-map-gl') || id.includes('@turf')) return 'vendor-gis';
+              return 'vendor-others';
+            }
+            if (id.includes('src/components/ui/')) {
+              return 'ui-components';
+            }
+          }
+        }
+      }
+    },
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      // API Key is handled by server proxy
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(__dirname, './src'),
       },
     },
     server: {

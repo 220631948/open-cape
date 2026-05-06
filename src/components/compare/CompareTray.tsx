@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Layers, X, Component, Map, LayoutDashboard, Bookmark, ArrowRight, Activity } from 'lucide-react';
-import { useCompareState, CompareItemType } from '@/src/contexts/CompareContext';
-import { Button } from '@/src/components/ui/Button';
-import { cn } from '@/src/lib/utils';
+import { useCompareState, CompareItemType } from '@/contexts/CompareContext';
+import { Button } from '@/components/ui/Button';
 
 export const CompareTray = () => {
   const { compareItems, removeFromCompare, clearCompare } = useCompareState();

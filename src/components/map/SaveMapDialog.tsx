@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { X, LayoutDashboard } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useSavedMaps } from '@/src/hooks/useSavedMaps';
-import { useProjects } from '@/src/hooks/useProjects';
+import { Button } from '@/components/ui/Button';
+import { useSavedMaps } from '@/hooks/useSavedMaps';
+import { useProjects } from '@/hooks/useProjects';
 
 interface SaveMapDialogProps {
   isOpen: boolean;

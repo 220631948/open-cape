@@ -2,7 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "outline" | "default";
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "default" | "destructive" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
 }
@@ -17,13 +17,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: "hover:bg-white/5 text-surface-400 hover:text-white",
       outline: "border border-white/10 bg-transparent hover:bg-white/5 text-white",
       default: "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20",
+      destructive: "bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-600/20",
+      link: "text-indigo-600 underline-offset-4 hover:underline",
     };
     
     const sizes = {
-      default: "h-10 px-4 py-2",
-      sm: "h-9 rounded-md px-3",
-      lg: "h-11 rounded-md px-8",
-      icon: "h-10 w-10",
+      default: "min-h-[44px] px-4 py-2",
+      sm: "h-9 rounded-md px-3",     // Used in tight UI areas (desktop), can override when needed
+      lg: "min-h-[48px] rounded-2xl px-8",
+      icon: "min-h-[44px] min-w-[44px]",
     };
 
     const Comp = asChild ? Slot : "button";

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { Map as MapIcon, ChevronRight, Activity, BookOpen, Layers, Info, FolderPlus, Bookmark } from 'lucide-react';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
-import { Button } from '@/src/components/ui/Button';
-import { cn } from '@/src/lib/utils';
-import { ProvenanceCard } from '@/src/components/ui/ProvenanceCard';
-import { AddBookmarkDialog } from '@/src/components/map/AddBookmarkDialog';
-import { useCompareState } from '@/src/contexts/CompareContext';
-import { EnvironmentalSummaryCard } from '@/src/components/map/EnvironmentalSummaryCard';
+import { DataStatusBanner, Button, ProvenanceCard } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import { AddBookmarkDialog } from '@/components/map/AddBookmarkDialog';
+import { useCompareState } from '@/contexts/CompareContext';
+import { EnvironmentalSummaryCard } from '@/components/map/EnvironmentalSummaryCard';
 
 export const AreaDetailPage = () => {
   const { areaId } = useParams();
@@ -24,6 +22,7 @@ export const AreaDetailPage = () => {
         id: areaId,
         type: 'area',
         title: areaId.replace('-', ' '),
+        projectId: null,
       });
     }
   };

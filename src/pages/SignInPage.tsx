@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
+import { Card, CardContent, CardFooter } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { auth } from '@/src/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { auth } from '@/lib/firebase';
 import { motion } from 'motion/react';
-import { WebGLBackground } from '@/src/components/ui/WebGLBackground';
+import { WebGLBackground } from '@/components/ui/WebGLBackground';
 import { ShieldCheck, MapPin } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 export const SignInPage = () => {
   const { signInWithEmail, signInWithGoogle, user } = useAuth();
@@ -87,61 +87,97 @@ export const SignInPage = () => {
   };
 
   return (
-    <div className="flex-1 relative flex items-center justify-center w-full min-h-screen overflow-hidden bg-surface-950 text-surface-50 selection:bg-rose-500/30">
-      <WebGLBackground className="opacity-40" />
+    <div className="flex-1 relative flex items-center justify-center w-full min-h-screen overflow-hidden bg-slate-950 text-slate-50 selection:bg-cyan-500/30">
+      <WebGLBackground className="opacity-50 mix-blend-screen" />
       <motion.div 
          initial={{ opacity: 0, y: 20, scale: 0.98 }}
          animate={{ opacity: 1, y: 0, scale: 1 }}
          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
          className="flex flex-col items-center justify-center p-4 w-full relative z-10"
       >
-        <div className="mb-10 text-center flex flex-col items-center">
-          <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 mb-6 backdrop-blur-xl rotate-3 shadow-2xl">
-            <MapPin className="h-8 w-8 text-white opacity-80" />
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="w-14 h-14 bg-slate-900/50 rounded-2xl flex items-center justify-center border border-white/10 mb-5 backdrop-blur-xl shadow-[0_0_30px_rgba(34,211,238,0.15)] ring-1 ring-cyan-500/20">
+            <MapPin className="h-6 w-6 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
           </div>
-          <h2 className="text-4xl font-bold tracking-tight text-white mb-3 font-display">Welcome Back</h2>
-          <p className="text-surface-400 font-light tracking-wide italic">Enter your secure spatial workspace</p>
+          <h2 className="text-3xl font-semibold tracking-tight text-white mb-2 font-display">Access Terminal</h2>
+          <p className="text-slate-400 text-sm font-light tracking-wide">Authenticate to secure spatial workspace</p>
         </div>
 
         <Card 
           className={cn(
-            "w-full max-w-sm shrink-0 border-white/10 bg-surface-900/40 text-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative rounded-[2.5rem] overflow-hidden",
-            !isLowGPU && "backdrop-blur-3xl"
+            "w-full max-w-sm shrink-0 border-white/10 bg-slate-900/40 text-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative rounded-[2rem] overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/[0.05] before:to-transparent before:pointer-events-none",
+            !isLowGPU && "backdrop-blur-2xl"
           )}
         >
-          <CardContent className="p-10 space-y-8">
+          <CardContent className="p-8 space-y-8">
             <form onSubmit={handleEmailSignIn} className="space-y-6">
-              <div className="space-y-4">
-                <Input type="email" placeholder="Email address" className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" value={email} onChange={(e) => setEmail(e.target.value)} required aria-label="Email Address" />
-                <Input type="password" placeholder="Password" className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" value={password} onChange={(e) => setPassword(e.target.value)} required aria-label="Password" />
-                {error && <div className="text-[11px] font-bold text-rose-400 mt-2 flex items-center gap-2 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 uppercase tracking-wider"><ShieldCheck className="h-4 w-4" />{error}</div>}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-[10px] uppercase font-semibold tracking-widest text-cyan-400/80 pl-1">Email Designation</label>
+                  <Input id="email" type="email" placeholder="name@company.com" className="bg-slate-950/50 border-white/10 text-white placeholder:text-slate-600 min-h-[50px] rounded-xl px-4 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 ring-offset-0 transition-all font-mono text-sm" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-[10px] uppercase font-semibold tracking-widest text-cyan-400/80 pl-1">Security Key</label>
+                  <Input id="password" type="password" placeholder="••••••••" className="bg-slate-950/50 border-white/10 text-white placeholder:text-slate-600 min-h-[50px] rounded-xl px-4 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 ring-offset-0 transition-all font-mono text-sm tracking-widest" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                {error && <div className="text-[11px] font-bold text-rose-400 mt-2 flex items-center gap-2 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 uppercase tracking-wider"><ShieldCheck className="h-4 w-4 shrink-0" />{error}</div>}
               </div>
-              <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white min-h-[60px] font-bold text-base rounded-2xl shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98] border-0" disabled={isLoading || isGoogleLoading}>
-                {isLoading ? 'Decrypting...' : 'Enter Platform'}
+              <Button type="submit" className="w-full bg-cyan-600 flex items-center justify-center hover:bg-cyan-500 text-white min-h-[52px] font-bold tracking-wide text-sm rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all active:scale-[0.98] border border-cyan-400/20" disabled={isLoading || isGoogleLoading}>
+                {isLoading ? 'Decrypting...' : 'Initialize Session'}
               </Button>
             </form>
 
-            <div className="relative">
+            <div className="relative mt-8">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-white/5" />
               </div>
-              <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] font-bold">
-                <span className="bg-surface-900/80 px-4 text-surface-500 backdrop-blur-sm rounded-full border border-white/5">Identity Check</span>
+              <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em] font-bold">
+                <span className="bg-slate-900/80 px-3 text-slate-500 backdrop-blur-sm rounded-full border border-white/5">Demo Auth</span>
               </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="text-[10px] font-mono border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white px-0"
+                onClick={() => { setEmail('superadmin@example.com'); setPassword('password123'); }}
+              >
+                Root
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="text-[10px] font-mono border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white px-0"
+                onClick={() => { setEmail('admin@companya.com'); setPassword('password123'); }}
+              >
+                Admin
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="text-[10px] font-mono border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white px-0"
+                onClick={() => { setEmail('user1@companya.com'); setPassword('password123'); }}
+              >
+                User
+              </Button>
             </div>
 
             <Button 
               type="button" 
               variant="outline" 
-              className="w-full border-white/5 bg-white/5 hover:bg-white/10 text-white min-h-[56px] rounded-2xl transition-all" 
+              className="w-full border-white/5 bg-white/5 hover:bg-white/10 text-white min-h-[50px] rounded-xl transition-all mt-4" 
               onClick={handleGoogleSignIn}
               disabled={isLoading || isGoogleLoading}
             >
               {isGoogleLoading ? (
                 'Connecting...'
               ) : (
-                <div className="flex items-center justify-center gap-3 font-semibold">
-                  <svg className="h-5 w-5" viewBox="0 0 24 24">
+                <div className="flex items-center justify-center gap-3 font-semibold text-sm">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -164,23 +200,23 @@ export const SignInPage = () => {
               )}
             </Button>
           </CardContent>
-          <CardFooter className="flex flex-col gap-6 bg-white/[0.02] p-10 pt-8 border-t border-white/5">
-            <div className="text-center w-full">
-              <p className="text-xs text-surface-500 font-light">
-                Need specialized access? <Link to="/sign-up" className="text-white hover:text-indigo-400 font-bold underline underline-offset-4 decoration-white/20 transition-colors">Create Account</Link>
+          <CardFooter className="flex flex-col gap-5 bg-white/[0.02] p-8 pt-6 border-t border-white/5">
+             <div className="text-center w-full">
+              <p className="text-xs text-slate-500 font-light">
+                Need specialized access? <Link to="/sign-up" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">Create Account</Link>
               </p>
             </div>
             <div className="flex w-full items-center justify-between gap-4">
-              <Button variant="ghost" className="text-surface-500 hover:text-white min-h-[44px] text-[11px] font-bold uppercase tracking-widest px-0 hover:bg-transparent" asChild>
+              <Button variant="ghost" className="text-slate-500 hover:text-slate-300 min-h-[40px] text-[10px] font-bold uppercase tracking-widest px-0 hover:bg-transparent" asChild>
                 <Link to="/app/map">Guest Entry</Link>
               </Button>
-              <Button variant="ghost" className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 min-h-[44px] text-[11px] font-bold uppercase tracking-widest px-4 rounded-xl" asChild>
+              <Button variant="ghost" className="text-cyan-400 hover:text-cyan-300 bg-cyan-400/5 hover:bg-cyan-400/10 border border-cyan-400/10 min-h-[40px] text-[10px] font-bold uppercase tracking-widest px-4 rounded-lg transition-all" asChild>
                 <Link to="/register-tenant">Organization</Link>
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-1.5 text-[9px] text-surface-600 uppercase tracking-[0.4em] font-mono font-bold">
-              <ShieldCheck className="h-3 w-3 text-emerald-500/50" />
-              <span>Bit-Level Encryption</span>
+            <div className="flex items-center justify-center gap-1.5 text-[9px] text-slate-600 uppercase tracking-[0.4em] font-mono font-bold mt-2">
+              <ShieldCheck className="h-3 w-3 text-cyan-500/50" />
+              <span>Encrypted Relay</span>
             </div>
           </CardFooter>
         </Card>

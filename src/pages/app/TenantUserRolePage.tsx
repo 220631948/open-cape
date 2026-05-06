@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Shield, ArrowLeft, User, Check, AlertTriangle } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useProfile } from '@/src/contexts/useProfile';
-import { getTenantUsers, getTenantRoles, updateMemberRole, TenantRole } from '@/src/lib/tenancy';
+import { Button } from '@/components/ui/Button';
+import { useProfile } from '@/contexts/useProfile';
+import { getTenantUsers, getTenantRoles, updateMemberRole, TenantRole } from '@/lib/tenancy';
 
 export const TenantUserRolePage: React.FC = () => {
   const { uid } = useParams();
@@ -134,16 +134,16 @@ export const TenantUserRolePage: React.FC = () => {
                   onClick={() => setSelectedRole(role.id)}
                   className={`
                     w-full text-left p-3 rounded-lg border transition-all
-                    ${selectedRole === role.id || selectedRole === role.name.toLowerCase()
+                    ${selectedRole === role.id
                       ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600' 
                       : 'border-surface-200 hover:bg-surface-50 hover:border-surface-300'}
                   `}
                 >
                   <div className="flex justify-between items-center">
-                    <span className={`text-sm font-bold ${selectedRole === role.id || selectedRole === role.name.toLowerCase() ? 'text-primary-900' : 'text-surface-900'}`}>{role.name}</span>
-                    {(selectedRole === role.id || selectedRole === role.name.toLowerCase()) && <Check className="w-4 h-4 text-primary-600" />}
+                    <span className={`text-sm font-bold ${selectedRole === role.id ? 'text-primary-900' : 'text-surface-900'}`}>{role.name}</span>
+                    {(selectedRole === role.id) && <Check className="w-4 h-4 text-primary-600" />}
                   </div>
-                  <p className={`text-xs mt-1 ${selectedRole === role.id || selectedRole === role.name.toLowerCase() ? 'text-primary-700' : 'text-surface-500'}`}>{role.description}</p>
+                  <p className={`text-xs mt-1 ${selectedRole === role.id ? 'text-primary-700' : 'text-surface-500'}`}>{role.description}</p>
                 </button>
               ))}
             </div>

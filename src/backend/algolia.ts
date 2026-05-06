@@ -5,7 +5,7 @@ let algoliaClient: ReturnType<typeof algoliasearch> | null = null;
 export function getAlgoliaClient() {
   if (!algoliaClient) {
     const appId = process.env.ALGOLIA_APP_ID;
-    const apiKey = process.env.ALGOLIA_API_KEY; // Requires Admin API Key for indexing
+    const apiKey = process.env.ALGOLIA_ADMIN_KEY; // Requires Admin API Key for indexing
     
     if (!appId || !apiKey) {
       console.warn('Algolia credentials not found in environment variables. Indexing functions will be skipped or mocked.');
@@ -26,10 +26,7 @@ export async function initializeAlgoliaIndices() {
   
   try {
      // If the client supports setSettings, configure attributesForFaceting
-     // Using ts-ignore if typing doesn't match standard v4/v5 seamlessly
-     // @ts-ignore
      if (typeof client.setSettings === 'function') {
-         // @ts-ignore
          await client.setSettings({
             indexName: PROPERTIES_INDEX,
             indexSettings: {
@@ -43,7 +40,6 @@ export async function initializeAlgoliaIndices() {
             }
          });
          
-         // @ts-ignore
          await client.setSettings({
             indexName: PROPERTIES_AUTOCOMPLETE,
             indexSettings: {
@@ -60,8 +56,8 @@ export async function initializeAlgoliaIndices() {
   }
 }
 
-export const PROPERTIES_INDEX = 'properties_index';
-export const PROPERTIES_AUTOCOMPLETE = 'properties_autocomplete';
+export const PROPERTIES_INDEX = process.env.ALGOLIA_INDEX_NAME || 'properties_index';
+export const PROPERTIES_AUTOCOMPLETE = (process.env.ALGOLIA_INDEX_NAME || 'properties_index') + '_autocomplete';
 
 export const SEARCH_PREFIX_LIMIT = 20;
 

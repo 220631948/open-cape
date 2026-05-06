@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { Loader2, Sparkles } from 'lucide-react';
 
 interface AIStreamingTextProps {

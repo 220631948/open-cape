@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { collection, query, where, orderBy, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SavedProject {
   id: string;

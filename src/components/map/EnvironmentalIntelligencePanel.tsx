@@ -1,9 +1,9 @@
 import React from 'react';
-import { useEarthEngineAccess } from '@/src/hooks/useEarthEngineAccess';
-import { useEnvironmentalContext } from '@/src/contexts/EnvironmentalContext';
-import { EE_LAYERS_CATALOG } from '@/src/hooks/useEnvironmentalLayers';
-import { Globe, Lock, Sliders } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { useEarthEngineAccess } from '@/hooks/useEarthEngineAccess';
+import { useEnvironmentalContext } from '@/contexts/EnvironmentalContext';
+import { EE_LAYERS_CATALOG } from '@/hooks/useEnvironmentalLayers';
+import { Globe, Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const EnvironmentalIntelligencePanel: React.FC = () => {
   const { hasAccess, isChecking } = useEarthEngineAccess();

@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useRef, KeyboardEvent } from 'react';
-import { Search, Loader2, Clock, X, Home } from 'lucide-react';
+import { Search, Loader2, Clock, X, Home, Pencil, MessageSquare } from 'lucide-react';
 import { useErfSearch, ErfRecord } from '../../hooks/useErfSearch';
+import { useDrawings, Drawing } from '../../hooks/useDrawings';
+import { useAnnotations, Annotation } from '../../hooks/useAnnotations';
 import { cn } from '../../lib/utils';
 import { useDebounce } from 'use-debounce';
 
+type SearchResult = 
+  | { type: 'erf', data: ErfRecord }
+  | { type: 'drawing', data: Drawing }
+  | { type: 'annotation', data: Annotation };
+
 interface SearchBarProps {
-  onSelect: (feature: ErfRecord) => void;
+  onSelect: (result: SearchResult) => void;
   className?: string;
 }
 
@@ -21,7 +28,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { results, isSearching, searchSuggestions, clearResults } = useErfSearch();
+  const { results: erfResults, isSearching, searchSuggestions, clearResults } = useErfSearch();
+  const { drawings } = useDrawings();
+  const { annotations } = useAnnotations();
 
   useEffect(() => {
     try {
@@ -40,6 +49,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
       setSelectedIndex(-1);
     }
   }, [debouncedSearch, searchSuggestions, clearResults]);
+
+  const filteredDrawings = debouncedSearch.length >= 2 
+    ? drawings.filter(d => d.title.toLowerCase().includes(debouncedSearch.toLowerCase()))
+    : [];
+
+  const filteredAnnotations = debouncedSearch.length >= 2
+    ? annotations.filter(a => 
+        a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) || 
+        a.body.toLowerCase().includes(debouncedSearch.toLowerCase())
+      )
+    : [];
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -64,8 +84,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
   };
 
-  const handleSelect = (result: ErfRecord) => {
-    const displayTerm = result.address || result.erfNumber || '';
+  const handleSelect = (result: SearchResult) => {
+    let displayTerm = '';
+    if (result.type === 'erf') displayTerm = result.data.address || result.data.erfNumber || '';
+    if (result.type === 'drawing') displayTerm = result.data.title;
+    if (result.type === 'annotation') displayTerm = result.data.title;
+
     setSearchTerm(displayTerm);
     saveRecentSearch(displayTerm);
     setIsOpen(false);
@@ -79,32 +103,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
     inputRef.current?.focus();
   };
 
-  const derivedResults = results.slice(0, 8);
   const showRecent = isOpen && debouncedSearch.length < 2 && recentSearches.length > 0;
   const showResults = isOpen && debouncedSearch.length >= 2;
-  const uniqueSuburbs = Array.from(new Set(results.map(r => r.allotmentArea).filter(Boolean)));
-  const uniqueStreets = Array.from(new Set(results.map(r => {
-    if (!r.address) return null;
-    const parts = r.address.split(',')[0].trim().split(' ');
-    if (parts.length > 1 && !isNaN(Number(parts[0]))) {
-      return parts.slice(1).join(' ');
-    }
-    const street = r.address.split(',')[0].trim();
-    // Use regex to remove numbers at start if still present
-    return street.replace(/^\d+\s*/, '');
-  }).filter(Boolean)));
-  const uniquePropertyTypes = Array.from(new Set(results.map(r => r.zoning).filter(Boolean)));
+  
+  const derivedErfResults = erfResults.slice(0, 5);
+  const derivedDrawings = filteredDrawings.slice(0, 3);
+  const derivedAnnotations = filteredAnnotations.slice(0, 3);
 
-  const suggestions = [
-    ...uniqueSuburbs.map(s => ({ type: 'suburb', text: s })),
-    ...uniqueStreets.map(s => ({ type: 'street', text: s })),
-    ...uniquePropertyTypes.map(s => ({ type: 'type', text: s })),
-  ].slice(0, 5); // Max 5 category suggestions
+  const totalResults = [
+    ...derivedErfResults.map(r => ({ type: 'erf' as const, data: r })),
+    ...derivedDrawings.map(d => ({ type: 'drawing' as const, data: d })),
+    ...derivedAnnotations.map(a => ({ type: 'annotation' as const, data: a }))
+  ];
 
-  const listMode = showRecent ? 'recent' : (showResults ? 'results' : 'none');
-  const maxIndex = listMode === 'recent' 
-    ? recentSearches.length - 1 
-    : suggestions.length + derivedResults.length - 1;
+  const maxIndex = showRecent ? recentSearches.length - 1 : totalResults.length - 1;
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
@@ -118,16 +130,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
       setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (listMode === 'recent' && selectedIndex >= 0) {
+      if (showRecent && selectedIndex >= 0) {
         handleRecentSelect(recentSearches[selectedIndex]);
-      } else if (listMode === 'results' && selectedIndex >= 0) {
-        if (selectedIndex < suggestions.length) {
-          handleRecentSelect(suggestions[selectedIndex].text!);
-        } else {
-          handleSelect(derivedResults[selectedIndex - suggestions.length]);
-        }
-      } else if (derivedResults.length > 0) {
-        handleSelect(derivedResults[0]);
+      } else if (showResults && selectedIndex >= 0) {
+        handleSelect(totalResults[selectedIndex]);
+      } else if (totalResults.length > 0) {
+        handleSelect(totalResults[0]);
       }
     }
   };
@@ -143,7 +151,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
           aria-expanded={isOpen}
           aria-controls="search-dropdown"
           aria-activedescendant={selectedIndex >= 0 ? `item-${selectedIndex}` : ""}
-          placeholder="Search property types, street names, suburbs..."
+          placeholder="Search properties, notes, drawings..."
           className="w-full bg-transparent outline-none text-sm text-surface-900 placeholder:text-surface-400"
           value={searchTerm}
           onChange={(e) => {
@@ -154,7 +162,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
         />
-        {isSearching && <Loader2 className="w-4 h-4 text-indigo-500 animate-spin shrink-0 ml-2" />}
+        {(isSearching) && <Loader2 className="w-4 h-4 text-indigo-500 animate-spin shrink-0 ml-2" />}
         {searchTerm && (
            <button 
              onClick={() => { setSearchTerm(''); inputRef.current?.focus(); }}
@@ -197,80 +205,44 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
 
       {showResults && (
         <div id="search-dropdown" role="listbox" className="absolute top-12 left-0 right-0 bg-white rounded-lg shadow-xl border border-surface-200 overflow-hidden max-h-[28rem] overflow-y-auto">
-          {isSearching && results.length === 0 ? (
-            <div className="p-4 flex flex-col gap-3">
-              {[1,2,3].map(i => (
-                 <div key={i} className="flex items-center gap-3 animate-pulse">
-                    <div className="w-8 h-8 rounded-full bg-surface-100" />
-                    <div className="flex-1 space-y-2">
-                       <div className="h-3 w-2/3 bg-surface-100 rounded" />
-                       <div className="h-2 w-1/3 bg-surface-100 rounded" />
-                    </div>
-                 </div>
-              ))}
-            </div>
-          ) : derivedResults.length > 0 || suggestions.length > 0 ? (
+          {totalResults.length > 0 ? (
             <div className="py-1">
-              {suggestions.length > 0 && (
-                <div className="px-3 py-2 text-xs font-semibold text-surface-500 uppercase tracking-widest bg-surface-50 border-b border-surface-100">
-                  Suggestions
-                </div>
-              )}
               <ul className="divide-y divide-surface-100">
-                {suggestions.map((suggestion, idx) => (
+                {totalResults.map((result, idx) => (
                   <li 
-                    key={`sug-${idx}`} 
+                    key={`${result.type}-${idx}`}
                     id={`item-${idx}`}
                     role="option"
                     aria-selected={selectedIndex === idx}
-                    className={cn("px-4 py-2 cursor-pointer flex items-center gap-3 transition-colors", selectedIndex === idx ? "bg-indigo-50" : "hover:bg-surface-50")}
-                    onClick={() => handleRecentSelect(suggestion.text!)}
+                    className={cn("px-4 py-2.5 cursor-pointer flex items-start gap-3 transition-colors", selectedIndex === idx ? "bg-indigo-50" : "hover:bg-surface-50")}
+                    onClick={() => handleSelect(result)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                   >
-                    <Search className="w-4 h-4 text-surface-400 shrink-0" />
-                    <span className="text-sm text-surface-900 font-medium">{suggestion.text}</span>
-                    <span className="text-xs text-surface-400 ml-auto capitalize">{suggestion.type}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              {derivedResults.length > 0 && (
-                <div className="px-3 py-2 text-xs font-semibold text-surface-500 uppercase tracking-widest bg-surface-50 border-y border-surface-100">
-                  Properties
-                </div>
-              )}
-              <ul className="divide-y divide-surface-100">
-                {derivedResults.map((result, idx) => {
-                  const globalIdx = suggestions.length + idx;
-                  return (
-                  <li 
-                    key={result.id} 
-                    id={`item-${globalIdx}`}
-                    role="option"
-                    aria-selected={selectedIndex === globalIdx}
-                    className={cn("px-4 py-2.5 cursor-pointer flex items-start gap-3 transition-colors", selectedIndex === globalIdx ? "bg-indigo-50" : "hover:bg-surface-50")}
-                    onClick={() => handleSelect(result)}
-                    onMouseEnter={() => setSelectedIndex(globalIdx)}
-                  >
-                    <div className="mt-0.5 shrink-0 bg-indigo-100 text-indigo-600 rounded p-1">
-                      <Home className="w-4 h-4" />
+                    <div className={cn(
+                      "mt-0.5 shrink-0 rounded p-1",
+                      result.type === 'erf' ? "bg-indigo-100 text-indigo-600" :
+                      result.type === 'drawing' ? "bg-purple-100 text-purple-600" :
+                      "bg-amber-100 text-amber-600"
+                    )}>
+                      {result.type === 'erf' && <Home className="w-4 h-4" />}
+                      {result.type === 'drawing' && <Pencil className="w-4 h-4" />}
+                      {result.type === 'annotation' && <MessageSquare className="w-4 h-4" />}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-bold text-surface-900 truncate">
-                        {result.address || result.erfNumber || 'Unknown Property'}
+                        {result.type === 'erf' ? (result.data.address || result.data.erfNumber) : result.data.title}
                       </span>
                       <span className="text-xs text-surface-500 truncate mt-0.5">
-                        {result.allotmentArea && `City of Cape Town - ${result.allotmentArea}`}
+                        {result.type === 'erf' ? (result.data.allotmentArea || 'Property Parcel') : 
+                         result.type === 'drawing' ? `Drawing (${result.data.geometryType})` : 
+                         `Note on ${result.data.targetType}`}
                       </span>
-                      <div className="flex gap-2 mt-1">
-                        {result.zoning && <span className="inline-flex text-[10px] font-medium bg-surface-100 text-surface-600 px-1.5 rounded">{result.zoning}</span>}
-                      </div>
                     </div>
                   </li>
-                )})}
+                ))}
               </ul>
             </div>
-          ) : (
+          ) : !isSearching && (
              <div className="p-6 text-sm text-center text-surface-500 flex flex-col items-center gap-2">
                <Search className="w-6 h-6 text-surface-300" />
                No results found

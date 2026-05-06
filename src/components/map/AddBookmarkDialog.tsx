@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Bookmark, X, ShieldCheck } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useBookmarks } from '@/src/hooks/useBookmarks';
-import { useProjects } from '@/src/hooks/useProjects';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
-import { useEnvironmentalContext } from '@/src/contexts/EnvironmentalContext';
-import { ALL_SOURCES } from '@/src/sources';
+import { Button } from '@/components/ui/Button';
+import { useBookmarks } from '@/hooks/useBookmarks';
+import { useProjects } from '@/hooks/useProjects';
+import { DataStatusBanner } from '@/components/ui/DataStatusBanner';
+import { useEnvironmentalContext } from '@/contexts/EnvironmentalContext';
+import { ALL_SOURCES } from '@/sources';
 
 interface AddBookmarkDialogProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export const AddBookmarkDialog: React.FC<AddBookmarkDialogProps> = ({ isOpen, on
   const [label, setLabel] = useState('');
   const [notes, setNotes] = useState('');
   const [projectId, setProjectId] = useState<string>('');
-  const { createBookmark, isLoading } = useBookmarks();
+  const { createBookmark } = useBookmarks();
   const { projects } = useProjects();
   const { activeLayers } = useEnvironmentalContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +44,7 @@ export const AddBookmarkDialog: React.FC<AddBookmarkDialogProps> = ({ isOpen, on
         notes: notes.trim() || undefined,
         sourceRefs: targetSource ? [targetSource.id] : [], 
         featureRef: currentFeatureId ? { id: currentFeatureId } : undefined,
+        mapState, // Save viewport state if provided
       });
       onClose();
       // Reset form

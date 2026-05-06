@@ -195,13 +195,13 @@ export async function getLiveErfRecord(lng: number, lat: number, mapFeature?: an
       const props = mapFeature.properties;
       return {
         id: `wcgp-${props.OBJECTID || props.id || Math.random().toString(36).substr(2, 9)}`,
-        erfNumber: props.erf_number || props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
-        allotmentArea: props.municipality || 'Western Cape',
-        address: props.address || null,
+        erfNumber: props.TAG_VALUE || props.erf_number || props.ERF_NMBR || props.PRTY_NMBR || 'Unknown ERF',
+        allotmentArea: props.Town_name || props.MUNICNAME || props.municipality || 'Western Cape',
+        address: props.address || (props.ADRS_STRT_NAME ? `${props.ADRS_STRT_NO} ${props.ADRS_STRT_NAME}, ${props.ADRS_SBRB}` : null),
         center: { lat, lng },
         status: 'live',
-        zoning: props.zoning || 'Not available from source',
-        zoningCategory: props.zoning || 'Unknown',
+        zoning: props.INT_ZONE_DESC || props.CODE_DESC || props.zoning || 'Not available from source',
+        zoningCategory: props.CAT_DESC || props.zoning || 'Unknown',
         geometry: mapFeature.geometry || { type: "Point", coordinates: [lng, lat] },
         parcelFeature: mapFeature,
         zoningFeature: null,

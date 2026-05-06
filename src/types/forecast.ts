@@ -16,4 +16,5 @@ export interface PriceForecastResult {
   forecastData: ForecastDataPoint[];
   method: string;
   evaluatedAt: string;
+  growthRate: number;
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import { AlertCircle, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
-import { useConnectionHealth } from '@/src/contexts/ConnectionHealthContext';
-import { ALL_SOURCES } from '@/src/sources';
-import { SchemaValidationResult } from '@/src/utils/validateVectorTileSchema';
+import { cn } from '@/lib/utils';
+import { useConnectionHealth } from '@/contexts/ConnectionHealthContext';
+import { ALL_SOURCES } from '@/sources';
+import { SchemaValidationResult } from '@/utils/validateVectorTileSchema';
 
 interface DataStatusBannerProps {
   className?: string;

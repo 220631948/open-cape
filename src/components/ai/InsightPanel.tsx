@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, RefreshCw } from 'lucide-react';
-import { Card } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
-import { ErfRecord } from '@/src/hooks/useErfSearch';
-import { geminiService } from '@/src/services/geminiService';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { ErfRecord } from '@/hooks/useErfSearch';
+import { geminiService } from '@/services/geminiService';
 import { AIStreamingText } from './AIStreamingText';
 
 interface InsightPanelProps {
   feature: ErfRecord;
+  valuationResult?: any;
+  riskAssessment?: any;
 }
 
-export const InsightPanel: React.FC<InsightPanelProps> = ({ feature }) => {
+export const InsightPanel: React.FC<InsightPanelProps> = ({ feature, valuationResult, riskAssessment }) => {
   const [stream, setStream] = useState<AsyncGenerator<string, void, unknown> | null>(null);
 
   const generateInsight = async () => {
     setStream(null); // Reset
     setTimeout(() => {
-      const insightStream = geminiService.streamParcelInsights(feature);
+      const insightStream = geminiService.streamParcelInsights(feature, { valuationResult, riskAssessment });
       setStream(insightStream);
     }, 50);
   };

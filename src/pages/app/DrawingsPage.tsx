@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useDrawings, Drawing, DrawingStyle } from '@/src/hooks/useDrawings';
-import { useProjects } from '@/src/hooks/useProjects';
-import { EditDrawingDialog } from '@/src/components/drawings/EditDrawingDialog';
-import { SortableDrawingCard } from '@/src/components/drawings/SortableDrawingCard';
-import { EmptyState } from '@/src/components/ui/EmptyState';
-import { Skeleton } from '@/src/components/ui/Skeleton';
+import { useDrawings, Drawing, DrawingStyle } from '@/hooks/useDrawings';
+import { useProjects } from '@/hooks/useProjects';
+import { EditDrawingDialog } from '@/components/drawings/EditDrawingDialog';
+import { SortableDrawingCard } from '@/components/drawings/SortableDrawingCard';
+import { EmptyState, Skeleton, Button } from '@/components/ui';
 import { Pencil, Search, Map as MapIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { Button } from '@/src/components/ui/Button';
 import {
   DndContext,
   closestCenter,
@@ -53,8 +51,8 @@ export const DrawingsPage = () => {
     navigate('/app/map', { state: { focusDrawing: drawing } });
   };
 
-  const handleEditDrawingSave = async (id: string, title: string, style: DrawingStyle) => {
-    await updateDrawing(id, { title, style });
+  const handleEditDrawingSave = async (id: string, title: string, style: DrawingStyle, projectId: string | null, imageUrl: string | null) => {
+    await updateDrawing(id, { title, style, projectId, imageUrl });
     setEditingDrawing(null);
   };
 

@@ -142,9 +142,77 @@
         "verifiedAt": { "$ref": "timestamp" }
       },
       "required": ["layerId", "originalCoords", "newCoords", "reason", "verifiedBy"]
+    },
+    "PropertyData": {
+      "title": "PropertyData",
+      "description": "Output schema for machine learning models running against properties.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "erfNumber": { "type": ["string", "null"] },
+        "tenantId": { "type": ["string", "null"] },
+        "valuation": { "type": "object" },
+        "risk": { "type": "object" },
+        "forecast": { "type": "object" },
+        "rental": { "type": "object" },
+        "segmentation": { "type": "object" },
+        "status": { "type": "string" },
+        "propertyType": { "type": ["string", "null"] },
+        "lastUpdated": { "$ref": "timestamp" }
+      },
+      "required": ["id", "status"]
+    },
+    "Watchlist": {
+      "title": "Watchlist",
+      "description": "User criteria for catching new properties.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "name": { "type": "string" },
+        "filters": {
+          "type": "object",
+          "properties": {
+            "minPrice": { "type": "number" },
+            "maxPrice": { "type": "number" },
+            "zoning": { "type": "string" },
+            "allotmentArea": { "type": "string" }
+          }
+        },
+        "createdAt": { "$ref": "timestamp" },
+        "updatedAt": { "$ref": "timestamp" }
+      },
+      "required": ["id", "ownerUid", "name", "filters"]
+    },
+    "MatchLog": {
+      "title": "MatchLog",
+      "description": "Matched property log for a watchlist.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "watchlistId": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "erfNumber": { "type": "string" },
+        "allotmentArea": { "type": "string" },
+        "matchedAt": { "$ref": "timestamp" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "watchlistId", "ownerUid", "erfNumber", "read"]
     }
   },
   "firestore": {
+    "/watchlists/{watchlistId}": {
+      "schema": { "$ref": "#/entities/Watchlist" },
+      "description": "Watchlists owned by users."
+    },
+    "/match_logs/{logId}": {
+      "schema": { "$ref": "#/entities/MatchLog" },
+      "description": "Logs of matches against watchlists."
+    },
+    "/property_data/{docId}": {
+      "schema": { "$ref": "#/entities/PropertyData" },
+      "description": "Machine learning outputs for ERFs or other properties."
+    },
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Core routing logic for accounts."

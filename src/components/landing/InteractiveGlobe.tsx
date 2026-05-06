@@ -53,7 +53,8 @@ export const InteractiveGlobe = () => {
       markers: [
         { location: [-33.9249, 18.4241], size: 0.15 } // Cape Town
       ],
-      onRender: (state) => {
+      // @ts-expect-error - Handling cobe typing where onRender might be missing in some TS versions
+      onRender: (state: any) => {
         if (!pointerInteracting.current) {
           // Subtle auto-rotation
           currentPhi -= 0.003;

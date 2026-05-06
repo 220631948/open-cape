@@ -1,40 +1,80 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
-import { Textarea } from '@/src/components/ui/Textarea';
+import { useNavigate } from 'react-router';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { X, MessageSquare, Building2, ShieldAlert } from 'lucide-react';
-import { useProjects } from '@/src/hooks/useProjects';
+import { useProjects } from '@/hooks/useProjects';
 
 interface AnnotationEditorProps {
   targetType: 'drawing' | 'map' | 'saved-map' | 'placeholder-feature' | 'parcel';
   targetId: string;
   initialTitle?: string;
   initialBody?: string;
-  projectId?: string | null;
+  initialImageUrl?: string | null;
+  initialStyle?: {
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+    fillOpacity?: number;
+  } | null;
+  initialGeometry?: any | null;
+  projectId: string | null;
   sourceRefs?: string[];
-  onSave: (data: { title: string, body: string, projectId: string | null, sourceRefs: string[] }) => void;
+  onSave: (data: { 
+    title: string, 
+    body: string, 
+    imageUrl: string | null, 
+    projectId: string | null, 
+    sourceRefs: string[],
+    style: {
+      stroke?: string;
+      strokeWidth?: number;
+      fill?: string;
+      fillOpacity?: number;
+    } | null
+  }) => void;
   onClose: () => void;
   isSaving?: boolean;
 }
 
 export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
   targetType,
+  targetId,
   initialTitle = '',
   initialBody = '',
+  initialImageUrl = null,
+  initialStyle = null,
+  initialGeometry = null,
   projectId: initialProjectId,
   sourceRefs = [],
   onSave,
   onClose,
   isSaving = false
 }) => {
+  const navigate = useNavigate();
   const { projects } = useProjects();
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
+  const [imageUrl, setImageUrl] = useState(initialImageUrl || '');
   const [projectId, setProjectId] = useState(initialProjectId || '');
+  const [style, setStyle] = useState(initialStyle || {
+    stroke: '#e11d48', // rose-600
+    strokeWidth: 2,
+    fill: '#fb7185', // rose-400
+    fillOpacity: 0.1
+  });
 
   const handleSave = () => {
-    onSave({ title, body, projectId: projectId || null, sourceRefs });
+    onSave({ 
+      title, 
+      body, 
+      imageUrl: imageUrl || null, 
+      projectId: projectId || null, 
+      sourceRefs,
+      style 
+    });
   };
 
   return (
@@ -87,6 +127,18 @@ export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold uppercase tracking-wider text-surface-700 flex items-center gap-1">
+              Image URL (Optional)
+            </label>
+            <Input 
+              value={imageUrl} 
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="h-8 text-sm"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-surface-700 flex items-center gap-1">
               <Building2 className="h-2.5 w-2.5" /> Link Project (Optional)
             </label>
             <select
@@ -100,9 +152,78 @@ export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
               ))}
             </select>
           </div>
+
+          <div className="space-y-2 pt-2 border-t border-surface-100">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-surface-700">Display Style</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[9px] text-surface-500 font-bold uppercase">Stroke</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="color" 
+                    value={style.stroke} 
+                    onChange={(e) => setStyle({...style, stroke: e.target.value})}
+                    className="w-6 h-6 rounded border-none p-0 bg-transparent cursor-pointer"
+                  />
+                  <Input 
+                    type="number" 
+                    value={style.strokeWidth} 
+                    onChange={(e) => setStyle({...style, strokeWidth: parseInt(e.target.value)})}
+                    className="h-6 w-10 text-[10px] px-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] text-surface-500 font-bold uppercase">Fill</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="color" 
+                    value={style.fill} 
+                    onChange={(e) => setStyle({...style, fill: e.target.value})}
+                    className="w-6 h-6 rounded border-none p-0 bg-transparent cursor-pointer"
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <Input 
+                      type="number" 
+                      min="0" max="1" step="0.1"
+                      value={style.fillOpacity} 
+                      onChange={(e) => setStyle({...style, fillOpacity: parseFloat(e.target.value)})}
+                      className="h-6 w-12 text-[10px] px-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex flex-col gap-2">
+          {initialGeometry && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full h-8 text-[10px] font-bold uppercase border-rose-200 text-rose-700 hover:bg-rose-50"
+              onClick={() => {
+                if (window.location.pathname !== '/app/map') {
+                  navigate('/app/map', { 
+                    state: { 
+                      focusGeometry: initialGeometry,
+                      focusParcelId: targetType === 'parcel' ? initialTitle : null
+                    } 
+                  });
+                } else {
+                  window.dispatchEvent(new CustomEvent('map:center-on-feature', { 
+                    detail: { 
+                      geometry: initialGeometry,
+                      parcelId: targetType === 'parcel' ? initialTitle : null 
+                    } 
+                  }));
+                }
+              }}
+            >
+              View on Map
+            </Button>
+          )}
           <Button 
             onClick={handleSave} 
             disabled={isSaving || !title.trim()}

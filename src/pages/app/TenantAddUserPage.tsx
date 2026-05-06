@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Mail, Info } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
-import { useProfile } from '@/src/contexts/useProfile';
-import { addMemberToTenant, getTenantRoles, TenantRole } from '@/src/lib/tenancy';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { useProfile } from '@/contexts/useProfile';
+import { addMemberToTenant, getTenantRoles, TenantRole } from '@/lib/tenancy';
 
 export const TenantAddUserPage: React.FC = () => {
   const navigate = useNavigate();

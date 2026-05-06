@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, useRef, useEffect } from 'react';
+import React, { FC, ReactNode, useEffect } from 'react';
 import { useBBoxLoader } from '../../hooks/useBBoxLoader';
 import { useOfflineTileFallback } from '../../hooks/useOfflineTileFallback';
 

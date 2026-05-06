@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { 
   Map, 
   Search, 
-  Ruler, 
+  ShieldAlert, 
   TrendingUp, 
   Save, 
   LayoutDashboard 
@@ -12,33 +12,33 @@ import {
 const FEATURES = [
   {
     icon: Map,
-    title: "Interactive Map Explorer",
-    desc: "Navigate Cape Town's spatial layers in real time",
+    title: "Interactive WebGL Maps",
+    desc: "Navigate Cape Town's spatial layers smoothly with 3D terrain and dynamic vector tile rendering",
   },
   {
     icon: Search,
-    title: "Search Places and Layers",
-    desc: "Find any address, suburb, or dataset instantly",
-  },
-  {
-    icon: Ruler,
-    title: "Draw and Measure",
-    desc: "Sketch areas and measure distances on the map",
-  },
-  {
-    icon: TrendingUp,
-    title: "Analyse Spatial Patterns",
-    desc: "Query and compare local data across geographies",
-  },
-  {
-    icon: Save,
-    title: "Save Map Views",
-    desc: "Bookmark and restore curated map states",
+    title: "AI OSINT Verification",
+    desc: "Automated verification of locations and metadata utilizing AI-driven spatial validation",
   },
   {
     icon: LayoutDashboard,
-    title: "Build Local Dashboards",
-    desc: "Combine layers and charts into focused views",
+    title: "Tenant Workspaces",
+    desc: "Secure, isolated environments for organisations with fine-grained RBAC and custom data",
+  },
+  {
+    icon: TrendingUp,
+    title: "Predictive Analytics",
+    desc: "Understand spatial patterns and trends with charting and temporal analysis tools",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Bit-Level Encryption",
+    desc: "Impersonation controls, custom tokens, and Zero-Trust architecture integrated throughout",
+  },
+  {
+    icon: Save,
+    title: "State Management",
+    desc: "Seamlessly save drawing layers, custom geometries, annotations, and layer preferences",
   }
 ];
 

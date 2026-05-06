@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useProfile } from '@/src/contexts/useProfile';
-import { getTenantUsers, getTenant, removeMemberFromTenant } from '@/src/lib/tenancy';
-import { Shield, Mail, CheckCircle2, Database, Edit2, Trash2 } from 'lucide-react';
-import { seedTenantData } from '@/src/utils/seedTenancy';
-import { Button } from '@/src/components/ui/Button';
+import { useProfile } from '@/contexts/useProfile';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
+import { getTenantUsers, getTenant, removeMemberFromTenant } from '@/lib/tenancy';
+import { Shield, Mail, CheckCircle2, Database, Edit2, Trash2, Key } from 'lucide-react';
+import { seedTenantData } from '@/utils/seedTenancy';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 export const TenantUsersPage: React.FC = () => {
   const navigate = useNavigate();
   const { profile } = useProfile();
+  const { impersonateUser } = useImpersonation();
   const [users, setUsers] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [impersonatingUid, setImpersonatingUid] = useState<string | null>(null);
+
+  const handleImpersonateClick = async (targetUid: string) => {
+    if (!profile) return;
+    setImpersonatingUid(targetUid);
+    try {
+      await impersonateUser(targetUid);
+      navigate('/app/map'); 
+    } catch (err: any) {
+      alert("Impersonation failed: " + err.message);
+    } finally {
+      setImpersonatingUid(null);
+    }
+  };
 
   const handleRemoveUser = async (userId: string) => {
     if (!profile?.tenantId || (profile?.role !== 'owner' && profile?.role !== 'admin')) return;
@@ -42,7 +59,11 @@ export const TenantUsersPage: React.FC = () => {
 
   useEffect(() => {
     async function loadData() {
-      if (profile?.tenantId) {
+      if (profile?.role === 'superadmin') {
+         const u = await getTenantUsers(null);
+         setTenant({ name: "SuperAdmin Global View" });
+         setUsers(u);
+      } else if (profile?.tenantId) {
         const [t, u] = await Promise.all([
           getTenant(profile.tenantId),
           getTenantUsers(profile.tenantId)
@@ -73,7 +94,7 @@ export const TenantUsersPage: React.FC = () => {
               <Mail className="w-4 h-4 mr-2" /> Invite User
             </Button>
           )}
-          {profile?.role === 'owner' && (
+          {profile?.role === 'superadmin' && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -92,6 +113,16 @@ export const TenantUsersPage: React.FC = () => {
           <h3 className="text-xs font-bold uppercase tracking-widest text-surface-500">
              Active Members ({users.length})
           </h3>
+          {(profile?.role === 'owner' || profile?.role === 'admin') && (
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                onClick={() => navigate('/app/roles')}
+            >
+                <Shield className="w-3.5 h-3.5 mr-1.5" /> Define Roles & Permissions
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -121,7 +152,14 @@ export const TenantUsersPage: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
                       <Shield className="w-3 h-3 text-surface-400" />
-                      <span className="text-xs font-medium capitalize text-surface-700">{u.role || 'member'}</span>
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border",
+                        u.role === 'owner' ? "bg-rose-50 text-rose-600 border-rose-100" :
+                        u.role === 'admin' || u.role === 'tenant_admin' || u.role === 'analyst' ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
+                        "bg-emerald-50 text-emerald-600 border-emerald-100"
+                      )}>
+                        {u.role || 'member'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -133,8 +171,19 @@ export const TenantUsersPage: React.FC = () => {
                     {u.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                     {(profile?.role === 'owner' || profile?.role === 'admin') && (
+                     {(profile?.role === 'owner' || profile?.role === 'admin' || profile?.role === 'tenant_admin' || profile?.role === 'superadmin') && (
                       <div className="flex justify-end gap-2">
+                        {u.uid !== profile.uid && (
+                          <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50 h-8"
+                             onClick={() => handleImpersonateClick(u.uid)}
+                             disabled={impersonatingUid === u.uid}
+                          >
+                            <Key className="h-3 w-3 mr-1" /> Login As
+                          </Button>
+                        )}
                         {u.uid !== profile.uid && (
                           <Button 
                              variant="ghost" 

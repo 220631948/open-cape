@@ -29,7 +29,7 @@ export const PriceForecastChart: React.FC<Props> = ({ forecast, className }) => 
 
   return (
     <div className={className}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={1} minWidth={1}>
         <LineChart data={uniqueData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis 

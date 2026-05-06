@@ -1,7 +1,7 @@
 import React from 'react';
 import { ExternalLink, ShieldCheck, Database, Calendar } from 'lucide-react';
-import { Card } from '@/src/components/ui/Card';
-import { SourceRecord } from '@/src/hooks/useSourceCatalog';
+import { Card } from './Card';
+import { SourceRecord } from '@/hooks/useSourceCatalog';
 import { SourceBadge } from './SourceBadge';
 import { DataStatusBanner } from './DataStatusBanner';
 

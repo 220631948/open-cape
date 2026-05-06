@@ -1,6 +1,8 @@
 {
-  "name": "cape-prospects",
-  "description": "",
-  "requestFramePermissions": [],
+  "name": "Cape Town Urban Property Intelligence",
+  "description": "Enterprise-grade spatial analysis and property intelligence platform for the City of Cape Town and Western Cape region.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
   "majorCapabilities": []
 }

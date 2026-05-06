@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { EnvironmentalLayerConfig, EE_LAYERS_CATALOG } from '@/src/hooks/useEnvironmentalLayers';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { EnvironmentalLayerConfig, EE_LAYERS_CATALOG } from '@/hooks/useEnvironmentalLayers';
+import { useLayerPreferences } from './useLayerPreferences';
 
 interface EnvironmentalContextType {
   catalog: EnvironmentalLayerConfig[];
@@ -14,9 +15,27 @@ interface EnvironmentalContextType {
 export const EnvironmentalContext = createContext<EnvironmentalContextType | null>(null);
 
 export const EnvironmentalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { preferences, updatePreferences } = useLayerPreferences();
   const [activeLayers, setActiveLayers] = useState<string[]>([]);
   const [opacities, setOpacities] = useState<Record<string, number>>({});
   const [timeRange, setTimeRange] = useState<[number, number]>([2020, new Date().getFullYear()]);
+
+  // Sync initial opacities from preferences only on load or actual change
+  useEffect(() => {
+    if (preferences?.opacities) {
+      setOpacities(prev => {
+        // Simple check to avoid unnecessary updates if deep equal (shallow check here)
+        const isDifferent = Object.keys(preferences.opacities || {}).some(
+          key => preferences.opacities?.[key] !== prev[key]
+        );
+        if (!isDifferent) return prev;
+        return {
+          ...prev,
+          ...preferences.opacities
+        };
+      });
+    }
+  }, [preferences?.opacities]);
 
   const toggleLayer = useCallback((layerId: string) => {
     setActiveLayers(prev => 
@@ -27,6 +46,21 @@ export const EnvironmentalProvider: React.FC<{ children: ReactNode }> = ({ child
   const updateOpacity = useCallback((layerId: string, opacity: number) => {
     setOpacities(prev => ({ ...prev, [layerId]: opacity }));
   }, []);
+
+  // Persist opacities to preferences when they change (debouncing might be good here)
+  useEffect(() => {
+    if (preferences && Object.keys(opacities).length > 0) {
+       // Only update if different from what's in preferences to avoid loops
+       const isDifferent = Object.keys(opacities).some(
+         key => opacities[key] !== preferences.opacities?.[key]
+       );
+       if (isDifferent) {
+         updatePreferences({ opacities }).catch(err => {
+           console.error("Failed to persist environmental opacity preference:", err);
+         });
+       }
+    }
+  }, [opacities, preferences, updatePreferences]);
 
   return (
     <EnvironmentalContext.Provider value={{

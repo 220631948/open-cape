@@ -1,5 +1,4 @@
 import React from 'react';
-import { AppLayout } from '@/src/layouts/AppLayout';
 import { Database, Clock, ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
 
 const SOURCES = [
@@ -197,6 +196,52 @@ export const DataStatusDashboard: React.FC = () => {
             </div>
           </div>
           
+          <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
+             <div className="px-5 py-4 border-b border-surface-200 bg-surface-50 flex items-center justify-between">
+                <h3 className="font-semibold text-surface-900">Background Processing (Cloud Functions)</h3>
+                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Simulated</span>
+             </div>
+             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                   <h4 className="text-sm font-bold text-surface-900">Vector Tile Pipeline</h4>
+                   <p className="text-xs text-surface-500 leading-relaxed">
+                      Recompute the vector tile cache if base cadastral data or imported geometries have changed significantly. This process runs as a background job.
+                   </p>
+                   <button 
+                     onClick={async () => {
+                       try {
+                         const resp = await fetch('/api/recompute-tiles', {
+                           method: 'POST',
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ tenantId: 'tenant_companyA', dataCollection: 'wcgp_cadastre' })
+                         });
+                         const data = await resp.json();
+                         alert(data.message);
+                       } catch {
+                         alert("Failed to trigger recomputation");
+                       }
+                     }}
+                     className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
+                   >
+                     <RefreshCw className="h-3.5 w-3.5" /> Recompute wcgp_cadastre tiles
+                   </button>
+                </div>
+                <div className="space-y-3 border-l border-surface-100 md:pl-6">
+                   <h4 className="text-sm font-bold text-surface-900">GeoJSON Import Queue</h4>
+                   <p className="text-xs text-surface-500 leading-relaxed">
+                      Automatically process pending file uploads. Validates geometry, checks CRS compatibility (EPSG:4326), and indexes attributes for search.
+                   </p>
+                   <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-surface-100 rounded-full overflow-hidden">
+                         <div className="h-full bg-emerald-500 w-[100%]" />
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-600">IDLE</span>
+                   </div>
+                   <p className="text-[10px] text-surface-400 italic">No pending files in organization bucket.</p>
+                </div>
+             </div>
+          </div>
+
           <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
              <div className="px-5 py-4 border-b border-surface-200 bg-surface-50">
                 <h3 className="font-semibold text-surface-900">Recent Validation Logs</h3>

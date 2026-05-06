@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { updateDoc, setDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { updateDoc } from '@/lib/safeFirestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserProfile {
   uid: string;

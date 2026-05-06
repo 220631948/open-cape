@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, FolderKanban, Search, Bookmark, MapPin, ShieldCheck } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useProjects } from '@/src/hooks/useProjects';
+import { Button, ErrorState } from '@/components/ui';
+import { useProjects } from '@/hooks/useProjects';
 import { Link, useNavigate } from 'react-router';
-import { Skeleton } from '@/src/components/ui/Skeleton';
-import { ErrorState } from '@/src/components/ui/ErrorState';
 
 export const ProjectsPage = () => {
    const { projects, isLoading, error, createProject } = useProjects();
@@ -74,18 +72,13 @@ export const ProjectsPage = () => {
             </div>
          </div>
 
-         {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white rounded-xl border border-surface-200 shadow-sm p-6 h-48 flex flex-col">
-                     <Skeleton className="h-6 w-3/4 mb-4" />
-                     <Skeleton className="h-4 w-full mb-2" />
-                     <Skeleton className="h-4 w-2/3" />
-                  </div>
-               ))}
-            </div>
-         ) : filteredProjects.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl border border-dashed border-surface-300">
+         {filteredProjects.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-white rounded-xl border border-dashed border-surface-300 relative overflow-hidden">
+               {isLoading && (
+                 <div className="absolute top-0 inset-x-0 h-0.5 bg-indigo-500/20">
+                    <div className="h-full bg-indigo-500 w-1/3 animate-pulse" />
+                 </div>
+               )}
                <div className="h-16 w-16 bg-surface-100 rounded-full flex items-center justify-center mb-4">
                   <FolderKanban className="h-8 w-8 text-surface-400" />
                </div>

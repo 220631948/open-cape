@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { Search, Map as MapIcon, Filter } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
+import { Map as MapIcon, Filter } from 'lucide-react';
+import { Button, DataStatusBanner } from '@/components/ui';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 export const AreaIndexPage = () => {
   return (
@@ -29,14 +29,12 @@ export const AreaIndexPage = () => {
             status="Dataset status: Live CCT Open Data is available for selected areas. Certain features remain analytical."
           />
 
-          <div className="bg-white p-4 border border-surface-200 rounded-lg shadow-sm flex items-center gap-4">
+           <div className="bg-white p-4 border border-surface-200 rounded-lg shadow-sm flex items-center gap-4">
              <div className="relative flex-1">
-               <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
-               <input 
-                 type="text"
-                 placeholder="Search areas..."
-                 disabled
-                 className="w-full pl-10 pr-4 py-2 border border-surface-300 rounded focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-surface-50 text-surface-500 cursor-not-allowed"
+               <SearchAutocomplete 
+                  onSelect={(hit) => {
+                     console.log('Selected from AreaIndexPage:', hit);
+                  }}
                />
              </div>
              <Button variant="outline" disabled>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DrawingCard } from './DrawingCard';
-import { Drawing } from '@/src/hooks/useDrawings';
+import { Drawing } from '@/hooks/useDrawings';
 
 interface SortableDrawingCardProps {
   drawing: Drawing;

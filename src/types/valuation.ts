@@ -14,4 +14,7 @@ export interface ValuationResult {
   confidenceScore: number | null;
   confidenceCategory: ConfidenceCategory | null;
   valuationTimestamp: string;
+  rentalEstimate?: number;
+  marketSegment?: string;
+  keyDrivers?: string[];
 }

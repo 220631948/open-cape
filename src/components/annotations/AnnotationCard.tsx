@@ -1,7 +1,7 @@
 import React from 'react';
-import { Annotation } from '@/src/hooks/useAnnotations';
-import { Card, CardContent } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
+import { Annotation } from '@/hooks/useAnnotations';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { 
   MessageSquare,
   Clock, 
@@ -61,6 +61,12 @@ export const AnnotationCard: React.FC<AnnotationCardProps> = ({
           </div>
         </div>
 
+        {annotation.imageUrl && (
+          <div className="mb-3 rounded overflow-hidden border border-surface-200">
+            <img src={annotation.imageUrl} alt={annotation.title} className="w-full h-32 object-cover" />
+          </div>
+        )}
+
         <p className="text-xs text-surface-600 line-clamp-3 mb-4 leading-relaxed flex-1">
           {annotation.body}
         </p>
@@ -101,7 +107,7 @@ export const AnnotationCard: React.FC<AnnotationCardProps> = ({
              className="h-7 text-[10px] font-bold uppercase"
              onClick={() => onView(annotation)}
            >
-              View
+              View on Map
            </Button>
            <Button 
              variant="ghost" 

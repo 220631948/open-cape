@@ -3,6 +3,7 @@ import { PropertyRiskResult, RiskBand } from '../../types/risk';
 import { ShieldAlert, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ConfidenceScoreBadge } from '../valuation/ConfidenceScoreBadge';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 interface Props {
   risk: PropertyRiskResult;
@@ -19,26 +20,71 @@ export const PropertyRiskPanel: React.FC<Props> = ({ risk, className }) => {
     }
   };
 
+  const getBandColor = (band: RiskBand) => {
+    switch (band) {
+      case 'Critical': return '#dc2626';
+      case 'High': return '#ea580c';
+      case 'Moderate': return '#d97706';
+      case 'Low': return '#059669';
+      default: return '#cbd5e1';
+    }
+  };
+
+  // Setup gauge data (0-100 mapping)
+  const score = Math.max(0, Math.min(100, risk.totalScore));
+  const remainder = 100 - score;
+  const data = [
+    { name: 'Score', value: score, color: getBandColor(risk.band) },
+    { name: 'Remaining', value: remainder, color: '#f1f5f9' }
+  ];
+
   return (
-    <div className={cn("bg-surface-50 p-4 rounded-lg border border-surface-200 mt-4", className)}>
-      <div className="flex justify-between flex-wrap gap-2 mb-2">
-        <span className="text-[10px] uppercase font-bold text-surface-400 tracking-wider flex items-center gap-1.5">
-          <ShieldAlert className="h-3 w-3" /> Area Risk Profile
-        </span>
+    <div className={cn("bg-white p-6 rounded-xl border border-surface-200 shadow-sm transition-all hover:shadow-md", className)}>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-[10px] uppercase font-black text-surface-400 tracking-[0.15em] flex items-center gap-2">
+          <ShieldAlert className="h-3.5 w-3.5 text-primary-500" /> 
+          Risk Intelligence Profile
+        </h3>
         <ConfidenceScoreBadge 
           score={risk.confidenceScore} 
           category={risk.confidenceBand} 
         />
       </div>
 
-      <div className="flex items-end gap-3 mb-4">
-        <div className="text-3xl font-black text-surface-900 leading-none">{risk.totalScore}</div>
-        <div className={cn("px-2 py-0.5 rounded border text-xs font-bold uppercase mb-0.5", getBandStyles(risk.band))}>
-          {risk.band} Risk
+      <div className="flex flex-col items-center mb-8 relative">
+        <div className="h-32 w-full -mb-12">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="100%"
+                startAngle={180}
+                endAngle={0}
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={0}
+                dataKey="value"
+                stroke="none"
+                isAnimationActive={true}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="text-center z-10">
+          <div className="text-3xl font-black text-surface-900 leading-none">{risk.totalScore}</div>
+          <div className={cn("px-2 py-0.5 mt-1 rounded border text-xs font-bold uppercase", getBandStyles(risk.band))}>
+            {risk.band} Risk
+          </div>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 mt-6">
         {risk.subScores.map(sub => (
           <div key={sub.category} className="bg-white border border-surface-100 rounded p-2">
             <div className="flex justify-between items-center mb-1">
@@ -57,12 +103,12 @@ export const PropertyRiskPanel: React.FC<Props> = ({ risk, className }) => {
       </div>
 
       {risk.missingData.length > 0 && (
-         <div className="mt-3 p-2 bg-slate-50 border border-slate-200 rounded flex gap-2">
-           <Info className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
+         <div className="mt-4 p-3 bg-surface-50 border border-surface-100 rounded-lg flex gap-3">
+           <Info className="w-4 h-4 text-surface-400 mt-0.5 shrink-0" />
            <div>
-             <p className="text-[10px] font-bold text-slate-600 uppercase">Missing Data</p>
-             <p className="text-[10px] text-slate-500">
-               {risk.missingData.join(', ')} unavailable for this location.
+             <p className="text-[10px] font-black text-surface-500 uppercase tracking-wider mb-0.5">Observation Gaps</p>
+             <p className="text-[10px] text-surface-400 leading-tight">
+               Primary metrics for <span className="font-medium text-surface-600">{risk.missingData.join(', ')}</span> are currently unverified for this precinct.
              </p>
            </div>
          </div>

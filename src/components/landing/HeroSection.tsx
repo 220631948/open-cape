@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Button } from '@/src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router';
 import { Search, MapPin, LayoutDashboard } from 'lucide-react';
 
@@ -15,9 +15,9 @@ export const HeroSection = () => {
           transition={{ delay: 0.1 }}
           className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-8 leading-[0.9]"
         >
-          Explore Cape Town and the Western Cape <br className="hidden md:block" />
+          Urban Property Intelligence for <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-slate-500">
-            through intelligent maps.
+            Cape Town & Western Cape.
           </span>
         </motion.h1>
 
@@ -25,9 +25,9 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-lg md:text-xl lg:text-2xl text-white/80 mb-12 max-w-3xl leading-relaxed mx-auto"
+          className="text-lg md:text-xl lg:text-2xl text-white/80 mb-12 max-w-3xl leading-relaxed mx-auto font-light"
         >
-          Search places, switch on layers, analyse patterns, and turn local spatial data into clear decisions.
+          High-performance spatial analysis, land use monitoring, and automated property intelligence for the public and private sector.
         </motion.p>
 
         <motion.div 
@@ -83,11 +83,11 @@ export const HeroSection = () => {
             className="absolute top-12 right-12 flex flex-col gap-2"
             aria-hidden="true"
           >
-            <div className="bg-white/10 border border-white/10 text-[10px] text-white/80 rounded-full px-3 py-1 uppercase tracking-widest shadow-xl flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-indigo-400" /> Land Use
+            <div className="bg-slate-900/40 backdrop-blur-md border border-cyan-500/20 text-[10px] text-cyan-50 rounded-full px-3 py-1 uppercase tracking-widest shadow-xl flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" /> OSINT Verified
             </div>
             <div className="bg-white/10 border border-white/10 text-[10px] text-white/80 rounded-full px-3 py-1 uppercase tracking-widest shadow-xl flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-rose-400" /> Risk Layers
+              <div className="w-2 h-2 rounded-full bg-indigo-400" /> Land Use
             </div>
           </motion.div>
 

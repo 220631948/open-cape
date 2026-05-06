@@ -116,6 +116,7 @@ export function calculatePriceForecast(
     historicalData,
     forecastData,
     method,
-    evaluatedAt: timestamp
+    evaluatedAt: timestamp,
+    growthRate: baseGrowthRate
   };
 }

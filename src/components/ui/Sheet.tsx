@@ -1,6 +1,6 @@
 import React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
 export const Sheet = DialogPrimitive.Root;

@@ -1,14 +1,14 @@
 import React from "react";
-import { ThreeDMapBackground } from "@/src/components/landing/ThreeDMapBackground";
-import { HeroSection } from "@/src/components/landing/HeroSection";
-import { FeatureCards } from "@/src/components/landing/FeatureCards";
-import { SpatialStorySection } from "@/src/components/landing/SpatialStorySection";
-import { WorkflowSection } from "@/src/components/landing/WorkflowSection";
-import { CTASection } from "@/src/components/landing/CTASection";
-import { FlythroughScrollScene } from "@/src/components/landing/FlythroughScrollScene";
+import { ThreeDMapBackground } from "@/components/landing/ThreeDMapBackground";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { FeatureCards } from "@/components/landing/FeatureCards";
+import { SpatialStorySection } from "@/components/landing/SpatialStorySection";
+import { WorkflowSection } from "@/components/landing/WorkflowSection";
+import { CTASection } from "@/components/landing/CTASection";
+import { FlythroughScrollScene } from "@/components/landing/FlythroughScrollScene";
 
 // Lazy load AnalyticsPreview since it uses Recharts
-const AnalyticsPreview = React.lazy(() => import("@/src/components/landing/AnalyticsPreview"));
+const AnalyticsPreview = React.lazy(() => import("@/components/landing/AnalyticsPreview"));
 
 export const LandingPage = () => {
   return (

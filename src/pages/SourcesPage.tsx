@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useSourceCatalog } from "@/src/hooks/useSourceCatalog";
-import { ProvenanceCard } from "@/src/components/ui/ProvenanceCard";
+import { useSourceCatalog } from "@/hooks/useSourceCatalog";
+import { ProvenanceCard } from "@/components/ui/ProvenanceCard";
 import { Search, Database, ShieldCheck, Server } from "lucide-react";
-import { DataStatusBanner } from "@/src/components/ui/DataStatusBanner";
-import { ConnectionDashboard } from "@/src/components/ui/ConnectionDashboard";
+import { DataStatusBanner } from "@/components/ui/DataStatusBanner";
+import { ConnectionDashboard } from "@/components/ui/ConnectionDashboard";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { SkeletonBlock } from "@/src/components/ui/SkeletonBlock";
-import { WebGLBackground } from "@/src/components/ui/WebGLBackground";
+import { SkeletonBlock } from "@/components/ui/SkeletonBlock";
+import { WebGLBackground } from "@/components/ui/WebGLBackground";
 
 const EmptyState = () => (
   <motion.div 

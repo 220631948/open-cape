@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { useState, useCallback, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { sanitizeForFirestore } from '@/src/lib/firestoreUtils';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeForFirestore } from '@/lib/firestoreUtils';
 
 export interface Annotation {
   id: string;
@@ -15,6 +15,14 @@ export interface Annotation {
   targetId: string; // ID of the drawing, map, etc.
   title: string;
   body: string;
+  imageUrl?: string | null;
+  geometry?: any | null; // For map-anchored notes
+  style?: {
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+    fillOpacity?: number;
+  } | null;
   sourceRefs: string[];
   createdAt: any;
   updatedAt: any;

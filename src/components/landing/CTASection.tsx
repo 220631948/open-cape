@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Button } from '@/src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router';
 
 export const CTASection = () => {

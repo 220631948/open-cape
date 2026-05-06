@@ -1,9 +1,9 @@
 import React from 'react';
-import { Card } from '@/src/components/ui/Card';
+import { Card } from '@/components/ui/Card';
 import { EarthEngineStatusBanner } from './EarthEngineStatusBanner';
-import { useEarthEngineAccess } from '@/src/hooks/useEarthEngineAccess';
+import { useEarthEngineAccess } from '@/hooks/useEarthEngineAccess';
 import { Activity, Droplets, Mountain, ThermometerSun, Info } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 interface EnvironmentalSummaryCardProps {
   featureId?: string;

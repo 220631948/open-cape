@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { collection, query, where, getDocs, limit, orderBy, startAt, endAt, doc, getDoc } from 'firebase/firestore';
-import { db } from '@/src/lib/firebase';
-import { searchCCTParcels, getLiveErfRecordById } from '@/src/source_connectors/cctOpenDataClient';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { searchCCTParcels, getLiveErfRecordById } from '@/source_connectors/cctOpenDataClient';
 
 export interface ErfRecord {
   id: string;
@@ -77,6 +77,11 @@ export function useErfSearch() {
     setIsSearching(true);
     setError(null);
     try {
+      if (erfId.startsWith('geocode-')) {
+        const cached = results.find(r => r.id === erfId);
+        if (cached) return cached;
+        return null; // Cannot refetch a geocode result without params
+      }
       if (erfId.startsWith('cct-')) {
         const objectId = erfId.replace('cct-', '');
         return await getLiveErfRecordById(objectId);
@@ -164,8 +169,10 @@ export function useErfSearch() {
 
     try {
       const liveData = await searchCCTParcels(searchTerm);
+      let parsed: ErfRecord[] = [];
+      
       if (liveData && liveData.features) {
-         const parsed = liveData.features.map((f: any) => {
+         parsed = liveData.features.map((f: any) => {
             const props = f.properties;
             let lat = 0, lng = 0;
             if (f.geometry?.type === 'Polygon') {
@@ -179,15 +186,39 @@ export function useErfSearch() {
                id: `cct-${props.OBJECTID}`,
                erfNumber: props.ERF_NMBR || props.PRTY_NMBR || 'Unknown',
                allotmentArea: props.ALLOTMENT_AREA || 'City of Cape Town',
-               address: props.ADRS_STRT_NAME ? `${props.ADRS_STRT_NO} ${props.ADRS_STRT_NAME}, ${props.ADRS_SBRB}` : null,
+               address: props.ADRS_STRT_NAME ? `${props.ADRS_STRT_NO || ''} ${props.ADRS_STRT_NAME}, ${props.ADRS_SBRB}`.trim() : null,
                center: { lat, lng },
                status: 'live',
                zoning: props.ZONING || 'Not available from source'
             };
          });
-         setResults(parsed);
-         return;
       }
+
+      // If no local parcel results or few results, try geocoding
+      if (parsed.length < 3) {
+        try {
+          const { geocodeAddress } = await import('@/services/geocodingService');
+          const geocodeResults = await geocodeAddress(searchTerm);
+          
+          if (geocodeResults && geocodeResults.length > 0) {
+            const geocodeErfRecords = geocodeResults.map((r, i) => ({
+              id: `geocode-${r.source}-${i}`,
+              erfNumber: 'Address Match',
+              allotmentArea: r.formattedAddress || 'Location Match',
+              address: r.address || r.formattedAddress,
+              center: { lat: r.lat, lng: r.lng },
+              status: 'geocode'
+            }));
+            
+            // Append geocoded results
+            parsed = [...parsed, ...geocodeErfRecords];
+          }
+        } catch (geocodeErr) {
+          console.warn("Geocoding failed during search suggestions", geocodeErr);
+        }
+      }
+
+      setResults(parsed);
     } catch (err: any) {
       console.error("Suggestions failed:", err);
     } finally {

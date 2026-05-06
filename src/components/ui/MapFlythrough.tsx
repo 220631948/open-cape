@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useMotionValue, MotionValue } from 'motion/react';
 import Map, { Source, Layer, useMap } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface MapFlythroughProps {
   className?: string;

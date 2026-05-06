@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useEffect, useState } from 'react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { motion, useScroll, useTransform, useSpring, useReducedMotion } from 'motion/react';
 
 interface WebGLBackgroundProps {
@@ -56,7 +56,7 @@ export const WebGLBackground = ({ className }: WebGLBackgroundProps) => {
   if (isMobile || isLowGPU || prefersReducedMotion) {
     return (
       <div 
-        className={cn("fixed inset-0 pointer-events-none overflow-hidden bg-gradient-to-b from-surface-950 via-surface-900 to-surface-950 z-[-1]", className)}
+        className={cn("fixed inset-0 pointer-events-none overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 z-[-1]", className)}
       >
          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDMiLz4KPC9zdmc+')] opacity-20" />
       </div>
@@ -64,10 +64,10 @@ export const WebGLBackground = ({ className }: WebGLBackgroundProps) => {
   }
 
   return (
-    <div ref={containerRef} className={cn("fixed inset-0 pointer-events-none overflow-hidden bg-surface-950 z-[-1]", className)}>
+    <div ref={containerRef} className={cn("fixed inset-0 pointer-events-none overflow-hidden bg-slate-950 z-[-1]", className)}>
        <motion.div
          style={{ y: y1 }}
-         className="absolute top-[10%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-primary-900/40 blur-[120px] mix-blend-screen"
+         className="absolute top-[10%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-cyan-900/30 blur-[120px] mix-blend-screen"
          animate={{ 
            scale: [1, 1.2, 1],
            opacity: [0.3, 0.5, 0.3],
@@ -77,7 +77,7 @@ export const WebGLBackground = ({ className }: WebGLBackgroundProps) => {
        />
        <motion.div
          style={{ y: y2 }}
-         className="absolute top-[40%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-emerald-900/30 blur-[120px] mix-blend-screen"
+         className="absolute top-[40%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-indigo-900/40 blur-[120px] mix-blend-screen"
          animate={{ 
            scale: [1, 1.1, 1],
            opacity: [0.2, 0.4, 0.2],
@@ -87,7 +87,7 @@ export const WebGLBackground = ({ className }: WebGLBackgroundProps) => {
        />
        <motion.div
          style={{ y: y3 }}
-         className="absolute top-[80%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-rose-900/20 blur-[100px] mix-blend-screen"
+         className="absolute top-[80%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-violet-900/20 blur-[100px] mix-blend-screen"
          animate={{ 
            scale: [1, 1.3, 1],
            opacity: [0.1, 0.3, 0.1],

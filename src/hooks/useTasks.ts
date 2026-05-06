@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { setDoc, updateDoc } from '../lib/safeFirestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,6 +22,8 @@ export function useTasks() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [filterPriority, setFilterPriority] = useState<Task['priority'] | 'all'>('all');
+  const [sortBy, setSortBy] = useState<'order' | 'priority' | 'dueDate'>('order');
 
   const fetchTasks = useCallback(async () => {
     if (!user) return;
@@ -34,9 +36,6 @@ export function useTasks() {
       const snap = await getDocs(q);
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
       
-      // Sort by order as primary
-      data.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      
       setTasks(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
@@ -44,6 +43,23 @@ export function useTasks() {
       setIsLoading(false);
     }
   }, [user]);
+
+  const filteredAndSortedTasks = useMemo(() => {
+    return tasks
+      .filter(t => filterPriority === 'all' || t.priority === filterPriority)
+      .sort((a, b) => {
+        if (sortBy === 'priority') {
+          const priorityScore = { high: 3, medium: 2, low: 1 };
+          return priorityScore[b.priority] - priorityScore[a.priority];
+        }
+        if (sortBy === 'dueDate') {
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        }
+        return (a.order ?? 0) - (b.order ?? 0);
+      });
+  }, [tasks, filterPriority, sortBy]);
 
   useEffect(() => {
     fetchTasks();
@@ -122,5 +138,17 @@ export function useTasks() {
     }
   };
 
-  return { tasks, isLoading, createTask, updateTask, deleteTask, reorderTasks };
+  return { 
+    tasks: filteredAndSortedTasks, 
+    rawTasks: tasks,
+    isLoading, 
+    filterPriority, 
+    setFilterPriority, 
+    sortBy, 
+    setSortBy, 
+    createTask, 
+    updateTask, 
+    deleteTask, 
+    reorderTasks 
+  };
 }

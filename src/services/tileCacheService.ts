@@ -117,5 +117,7 @@ export const clearCache = async (): Promise<void> => {
       store.clear();
       transaction.oncomplete = () => resolve();
     });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Failed to clear local tile cache:', e);
+  }
 };

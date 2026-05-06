@@ -1,7 +1,7 @@
 import React from 'react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
+import { Button } from './Button';
 
 interface ErrorStateProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;

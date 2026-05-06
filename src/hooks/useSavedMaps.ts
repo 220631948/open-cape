@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { sanitizeForFirestore } from '@/src/lib/firestoreUtils';
+import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeForFirestore } from '@/lib/firestoreUtils';
 
 export interface ViewportState {
   longitude: number;
@@ -16,7 +16,7 @@ export interface ViewportState {
 export interface SavedMap {
   id: string;
   ownerUid: string;
-  projectId?: string;
+  projectId: string | null;
   title: string;
   description: string;
   viewport: ViewportState;
@@ -38,8 +38,7 @@ export function useSavedMaps(projectId?: string) {
     setError(null);
     try {
       let q = query(
-        collection(db, 'saved_maps'),
-        where('ownerUid', '==', user.uid)
+        collection(db, 'saved_views', user.uid, 'views')
       );
       
       if (projectId) {
@@ -74,7 +73,7 @@ export function useSavedMaps(projectId?: string) {
       updatedAt: serverTimestamp(),
     };
     
-    await setDoc(doc(db, 'saved_maps', id), sanitizeForFirestore(newSavedMap));
+    await setDoc(doc(db, 'saved_views', user.uid, 'views', id), sanitizeForFirestore(newSavedMap));
     await fetchSavedMaps();
     return id;
   };
@@ -85,13 +84,13 @@ export function useSavedMaps(projectId?: string) {
       ...updates,
       updatedAt: serverTimestamp()
     };
-    await updateDoc(doc(db, 'saved_maps', id), payload);
+    await updateDoc(doc(db, 'saved_views', user.uid, 'views', id), payload);
     await fetchSavedMaps();
   };
 
   const deleteSavedMap = async (id: string) => {
     if (!user) return;
-    await deleteDoc(doc(db, 'saved_maps', id));
+    await deleteDoc(doc(db, 'saved_views', user.uid, 'views', id));
     await fetchSavedMaps();
   };
 

@@ -1,16 +1,16 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { Skeleton } from '@/src/components/ui/Skeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/Skeleton';
 
-interface ProtectedRouteProps {
+interface RequireAuthProps {
   children: React.ReactNode;
 }
 
 /**
  * A wrapper component that redirects unauthenticated users to the sign-in page.
  */
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+export const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 

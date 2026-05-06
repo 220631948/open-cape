@@ -1,6 +1,6 @@
 import React from 'react';
-import { AlertTriangle, Lock, Globe } from 'lucide-react';
-import { useEarthEngineAccess } from '@/src/hooks/useEarthEngineAccess';
+import { AlertTriangle, Lock } from 'lucide-react';
+import { useEarthEngineAccess } from '@/hooks/useEarthEngineAccess';
 
 export const EarthEngineStatusBanner: React.FC<{ className?: string }> = ({ className = '' }) => {
   const { hasAccess, isChecking } = useEarthEngineAccess();

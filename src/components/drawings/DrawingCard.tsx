@@ -1,7 +1,7 @@
 import React from 'react';
-import { Drawing } from '@/src/hooks/useDrawings';
-import { Card, CardContent } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
+import { Drawing } from '@/hooks/useDrawings';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { 
   Square, 
   Spline, 

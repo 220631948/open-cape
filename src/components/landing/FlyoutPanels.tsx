@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, MotionValue } from 'motion/react';
 import { Search, Layers, PenTool, BarChart2, BookmarkPlus } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface FlyoutPanelsProps {
   cardY: MotionValue<string>;

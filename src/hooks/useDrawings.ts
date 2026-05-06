@@ -1,9 +1,9 @@
 /* eslint-disable */
 import { useState, useCallback, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface DrawingStyle {
   stroke: string;
@@ -18,6 +18,7 @@ export interface Drawing {
   projectId: string | null;
   parcelId: string | null;
   title: string;
+  imageUrl?: string | null;
   geometryType: 'Point' | 'LineString' | 'Polygon';
   geometry: any; // GeoJSON geometry object
   style: DrawingStyle;

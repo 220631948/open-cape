@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import { Bookmark, LayoutDashboard, Search, FolderKanban, Layers, Map as MapIcon } from 'lucide-react';
-import { EmptyState } from '@/src/components/ui/EmptyState';
-import { ErrorState } from '@/src/components/ui/ErrorState';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
-import { useSavedMaps } from '@/src/hooks/useSavedMaps';
-import { Skeleton } from '@/src/components/ui/Skeleton';
+import { LayoutDashboard, Search, FolderKanban, Layers, Map as MapIcon } from 'lucide-react';
+import { EmptyState, ErrorState, DataStatusBanner, Button } from '@/components/ui';
+import { useSavedMaps } from '@/hooks/useSavedMaps';
 import { Link, useNavigate } from 'react-router';
-import { Button } from '@/src/components/ui/Button';
-import { useCompareState } from '@/src/contexts/CompareContext';
+import { useCompareState } from '@/contexts/CompareContext';
 
 export const SavedMapsPage = () => {
   const { savedMaps, isLoading, error, deleteSavedMap } = useSavedMaps();
@@ -63,23 +59,20 @@ export const SavedMapsPage = () => {
          />
       </div>
 
-      {isLoading ? (
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => (
-               <div key={i} className="bg-white rounded-xl border border-surface-200 shadow-sm p-6 h-48 flex flex-col">
-                  <Skeleton className="h-6 w-3/4 mb-4" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-1/2 mb-4" />
-               </div>
-            ))}
+      {filteredMaps.length === 0 ? (
+         <div className="relative">
+            {isLoading && (
+              <div className="absolute top-0 inset-x-0 h-0.5 bg-indigo-500/20 z-10 overflow-hidden">
+                 <div className="h-full bg-indigo-500 w-1/3 animate-pulse" />
+              </div>
+            )}
+            <EmptyState
+               icon={MapIcon}
+               title={searchQuery ? "No maps match your search" : "No saved maps yet"}
+               description={searchQuery ? "" : "Explore the Cape on the interactive map and save specific views or layer setups to return to them instantly."}
+               action={!searchQuery ? { label: "Go to Map Workspace", onClick: () => navigate('/app/map') } : undefined}
+            />
          </div>
-      ) : filteredMaps.length === 0 ? (
-         <EmptyState
-            icon={MapIcon}
-            title={searchQuery ? "No maps match your search" : "No saved maps yet"}
-            description={searchQuery ? "" : "Explore the Cape on the interactive map and save specific views or layer setups to return to them instantly."}
-            action={!searchQuery ? { label: "Go to Map Workspace", onClick: () => navigate('/app/map') } : undefined}
-         />
       ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMaps.map((map) => (
@@ -123,6 +116,18 @@ export const SavedMapsPage = () => {
                         >
                            <Layers className="h-3 w-3 mr-1" />
                            {isComparing(map.id) ? 'Comparing' : 'Compare'}
+                        </Button>
+                        <Button 
+                           variant="ghost" 
+                           size="sm" 
+                           className="h-6 text-[10px] px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                           onClick={async () => {
+                              if (window.confirm('Delete this saved map?')) {
+                                 await deleteSavedMap(map.id);
+                              }
+                           }}
+                        >
+                           Delete
                         </Button>
                         <Link to={`/app/map`} state={{ savedMapId: map.id }}>
                            <Button size="sm" className="h-6 text-[10px] px-4 bg-primary-600 hover:bg-primary-700 text-white">Open Map</Button>

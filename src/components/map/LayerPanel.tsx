@@ -19,15 +19,13 @@ import {
   Plus,
   GripVertical
 } from "lucide-react";
-import { Button } from "@/src/components/ui/Button";
-import { cn } from "@/src/lib/utils";
-import { DataStatusBanner } from "@/src/components/ui/DataStatusBanner";
-import { EnvironmentalIntelligencePanel } from "./EnvironmentalIntelligencePanel";
-import { EnvironmentalLegend } from "./EnvironmentalLegend";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+import { AddLayerDialog } from "./AddLayerDialog";
 import { MunicipalitySelector } from "./MunicipalitySelector";
-import { getLayerCapabilities } from "@/src/registry/layerCapabilityRegistry";
-import { useProfile } from "@/src/contexts/useProfile";
-import { useTenantData } from "@/src/hooks/useTenantData";
+import { getLayerCapabilities } from "@/registry/layerCapabilityRegistry";
+import { useProfile } from "@/contexts/useProfile";
+import { useTenantData } from "@/hooks/useTenantData";
 import {
   DndContext,
   closestCenter,
@@ -125,6 +123,8 @@ interface LayerPanelProps {
   setHistoricalYear?: (v: number | null) => void;
   layerOpacities?: Record<string, number>;
   onOpacityChange?: (layerId: string, opacity: number) => void;
+  showProjectPulse?: boolean;
+  setShowProjectPulse?: (v: boolean) => void;
 }
 
 export const LayerPanel: React.FC<LayerPanelProps> = ({
@@ -136,6 +136,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
   setBaseMap = (v: "street" | "satellite" | "topo") => {},
   showHillshade = false,
   setShowHillshade = (v: boolean) => {},
+  showProjectPulse = true,
+  setShowProjectPulse = (v: boolean) => {},
   historicalYear = null,
   setHistoricalYear = (v: number | null) => {},
   layerOpacities = {},
@@ -144,8 +146,16 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
   const [isOpen, setIsOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [layerStatus, setLayerStatus] = useState<Record<string, { loading: boolean; error: string | null; loaded?: number; total?: number | null }>>({});
+  const [isAddLayerOpen, setIsAddLayerOpen] = useState(false);
   const { profile } = useProfile();
   const { importGeoJSON, isImporting } = useTenantData();
+
+  // Handle adding custom layers from URLs
+  const handleAddCustomSource = (source: any) => {
+    // This will be handled by a global custom sources hook or MapPage state
+    // For now, we'll dispatch a custom event that MapPage listens to
+    window.dispatchEvent(new CustomEvent('map:add-custom-source', { detail: source }));
+  };
 
   useEffect(() => {
     const handleStatus = (e: any) => {
@@ -163,7 +173,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
     try {
       const saved = localStorage.getItem('layerPanelOpenGroups');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch (e) { console.warn(e); }
     return {
       "Active Layers": true,
       "Cadastre Layers": true,
@@ -372,12 +382,28 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          onClick={() => setIsAddLayerOpen(true)}
+          className="text-surface-400 hover:text-indigo-600 transition-colors"
+          title="Add custom layer"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setIsOpen(false)}
           className="-mr-2 text-surface-400 hover:text-surface-900"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
       </div>
+
+      {isAddLayerOpen && (
+        <AddLayerDialog 
+          onClose={() => setIsAddLayerOpen(false)} 
+          onAdd={handleAddCustomSource} 
+        />
+      )}
 
       <div className="px-4 py-2 border-b border-surface-100 flex items-center gap-2 bg-surface-50">
         <div className="relative flex-1 group">
@@ -414,6 +440,18 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                <SortableContext items={activeLayers} strategy={verticalListSortingStrategy}>
                  <div className="space-y-1">
+                    <div className="flex items-center justify-between p-2 mb-1 bg-rose-50 border border-rose-100 rounded-lg">
+                       <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                          <span className="text-[10px] font-bold text-rose-700 uppercase tracking-tight">Spatial Project Pulse</span>
+                       </div>
+                       <button
+                         onClick={() => setShowProjectPulse(!showProjectPulse)}
+                         className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
+                       >
+                         <div className={cn("w-3 h-3 rounded-full bg-white shadow-sm transition-transform", showProjectPulse ? "translate-x-4" : "translate-x-0")} />
+                       </button>
+                    </div>
                    {activeLayers.map((id) => {
                      const layerInfo = getLayerInfo(id);
                      return (
@@ -755,60 +793,16 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
         {renderLayerGroup(
           "Saved Overlays",
           <FolderOpen className="h-3.5 w-3.5" />,
-          "Your saved annotations and drawings.",
+          "Your custom saved maps and drawings.",
           [
             {
-              id: "user_drawings",
-              name: "My Drawings",
-              color: "text-purple-500",
-            },
-          ],
-        )}
-
-        {searchTerm && (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="p-3 bg-surface-50 rounded-full mb-3">
-              <Search className="h-6 w-6 text-surface-300" />
-            </div>
-            <p className="text-sm font-semibold text-surface-900">No layers found</p>
-            <p className="text-xs text-surface-500 mt-1">Try a different search term or check all groups.</p>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="mt-4 text-indigo-600 hover:text-indigo-700 font-bold"
-              onClick={() => setSearchTerm("")}
-            >
-              Clear Search
-            </Button>
-          </div>
-        )}
-
-        {!searchTerm && (
-          <div className="border-t border-surface-200 mt-2 -mx-4 pt-2">
-            <EnvironmentalIntelligencePanel />
-          </div>
-        )}
-
-        {/* Global Connection Health Warning */}
-        {!searchTerm && (
-          <div className="mt-4 px-2">
-            <DataStatusBanner variant="warning" globalAlert={true} activeLayerIds={activeLayers} />
-          </div>
+               id: "user_drawings",
+               name: "My Drawings",
+               color: "text-purple-500",
+            }
+          ]
         )}
       </div>
-
-      {/* Legend Area */}
-      {!searchTerm && <EnvironmentalLegend />}
-      
-      {/* Placeholder for standard legends if EE is not active */}
-      {!searchTerm && (
-        <div className="h-20 border-t border-surface-200 bg-surface-50 p-4 shrink-0 flex flex-col justify-center items-center text-center">
-          <Layers className="h-4 w-4 text-surface-300 mb-1" />
-          <p className="text-[10px] text-surface-500 text-balance font-medium">
-            Standard layer legends will appear here.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
-import { ArrowLeft, Map, Bookmark as BookmarkIcon, Link as LinkIcon, Trash2, Settings, ShieldCheck, MapPin, Pencil, MessageSquare } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useProjects, SavedProject } from '@/src/hooks/useProjects';
-import { useBookmarks } from '@/src/hooks/useBookmarks';
-import { useDrawings } from '@/src/hooks/useDrawings';
-import { useAnnotations } from '@/src/hooks/useAnnotations';
-import { Skeleton } from '@/src/components/ui/Skeleton';
-import { Card } from '@/src/components/ui/Card';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
+import { ArrowLeft, Map, Bookmark as BookmarkIcon, Link as LinkIcon, Trash2, Settings, ShieldCheck, Pencil, MessageSquare, Camera, Plus, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Button, Skeleton, Card, DataStatusBanner } from '@/components/ui';
+import { useProjects, SavedProject } from '@/hooks/useProjects';
+import { useBookmarks } from '@/hooks/useBookmarks';
+import { useDrawings } from '@/hooks/useDrawings';
+import { useAnnotations } from '@/hooks/useAnnotations';
+import { useProjectEvidence } from '@/hooks/useProjectEvidence';
+import { useStorage } from '@/hooks/useStorage';
 
 export const ProjectDetailPage = () => {
    const { projectId } = useParams<{ projectId: string }>();
@@ -17,6 +16,8 @@ export const ProjectDetailPage = () => {
    const { bookmarks, isLoading: isLoadingBookmarks } = useBookmarks(projectId);
    const { drawings, isLoading: isLoadingDrawings } = useDrawings(projectId);
    const { annotations, isLoading: isLoadingAnnotations } = useAnnotations(projectId);
+   const { evidence, isLoading: isLoadingEvidence, addEvidence } = useProjectEvidence(projectId);
+   const { uploadImage, isUploading } = useStorage();
 
    const [project, setProject] = useState<SavedProject | null>(null);
 
@@ -226,6 +227,76 @@ export const ProjectDetailPage = () => {
                               <h4 className="text-sm font-semibold text-surface-900 mb-1">{a.title}</h4>
                               <p className="text-xs text-surface-600 line-clamp-2">{a.body}</p>
                            </Card>
+                        ))}
+                     </div>
+                  )}
+               </section>
+
+               <section>
+                  <div className="flex items-center justify-between mb-4">
+                     <h2 className="text-lg font-semibold text-surface-900 flex items-center gap-2">
+                        <Camera className="h-5 w-5 text-surface-400" />
+                        Field Evidence
+                     </h2>
+                     <div className="flex items-center gap-2">
+                       <input
+                         type="file"
+                         id="evidence-upload"
+                         className="hidden"
+                         accept="image/*"
+                         onChange={async (e) => {
+                           const file = e.target.files?.[0];
+                           if (file && projectId) {
+                             const url = await uploadImage(file, `projects/${projectId}/evidence`);
+                             if (url) {
+                               await addEvidence({
+                                 type: 'image',
+                                 url,
+                                 caption: file.name
+                               });
+                             }
+                           }
+                         }}
+                       />
+                       <Button 
+                         variant="outline" 
+                         size="sm" 
+                         className="text-xs"
+                         onClick={() => document.getElementById('evidence-upload')?.click()}
+                         disabled={isUploading}
+                       >
+                          {isUploading ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1.5" />}
+                          Upload Photo
+                       </Button>
+                     </div>
+                  </div>
+                  
+                  {isLoadingEvidence ? (
+                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                       {[1, 2, 3].map(i => <Skeleton key={i} className="aspect-square w-full rounded-xl" />)}
+                     </div>
+                  ) : evidence.length === 0 ? (
+                     <div className="bg-white border text-center border-surface-200 rounded-xl p-8">
+                        <div className="h-12 w-12 bg-surface-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <ImageIcon className="h-6 w-6 text-surface-300" />
+                        </div>
+                        <p className="text-surface-500 font-medium mb-1">No field evidence yet.</p>
+                        <p className="text-surface-400 text-xs">Collect photographic evidence from recent site visits.</p>
+                     </div>
+                  ) : (
+                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {evidence.map(item => (
+                           <div key={item.id} className="group relative aspect-square rounded-xl overflow-hidden border border-surface-200 bg-surface-100 shadow-sm transition-all hover:shadow-md">
+                              <img 
+                                src={item.url} 
+                                alt={item.caption} 
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                 <p className="text-white text-[10px] font-bold uppercase tracking-wider truncate">{item.caption}</p>
+                                 <p className="text-white/70 text-[9px]">{item.createdAt?.toDate().toLocaleDateString()}</p>
+                              </div>
+                           </div>
                         ))}
                      </div>
                   )}

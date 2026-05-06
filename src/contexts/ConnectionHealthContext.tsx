@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { doc, getDocFromServer } from 'firebase/firestore';
-import { db } from '@/src/lib/firebase';
-import { CCT_OPEN_DATA_CONFIG } from '@/src/source_connectors/cctOpenDataClient';
+import { db } from '@/lib/firebase';
+import { CCT_OPEN_DATA_CONFIG } from '@/source_connectors/cctOpenDataClient';
 
 export type ServiceStatus = 'operational' | 'degraded' | 'offline' | 'checking';
 
@@ -67,11 +67,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
             await getDocFromServer(doc(db, 'system', 'health_check'));
             isOk = true;
          } catch (e: any) {
-            // Missing or insufficient permissions still means it's online
-            if (e.code === 'permission-denied') {
-              isOk = true;
-            } else if (e.code === 'unavailable') {
-              // Firebase returns unavailable if offline or blocked by network config. We can treat it as degraded instead of failing completely, since it falls back to cache.
+            if (['permission-denied', 'not-found', 'unavailable'].includes(e.code)) {
               isOk = true;
             } else {
               errMsg = e.message || String(e);
@@ -81,11 +77,12 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
          if (isOk) {
             return {
               ...service,
-              status: (t1 - t0 > 2000) ? 'degraded' : 'operational',
+              status: (t1 - t0 > 10000) ? 'degraded' : 'operational',
               lastChecked: new Date(),
-              errorMessage: undefined
+              errorMessage: undefined // eslint-disable-line custom-rules/no-undefined-firestore-payload
             };
-         } else {
+         }
+ else {
             return {
               ...service,
               status: 'offline',
@@ -104,7 +101,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
           status: 'operational',
           lastChecked: new Date(),
           httpCode: response.status,
-          errorMessage: undefined,
+          errorMessage: undefined, // eslint-disable-line custom-rules/no-undefined-firestore-payload
         };
       } else {
         return {

@@ -7,7 +7,7 @@ export interface CompareItem {
   type: CompareItemType;
   title: string;
   subtitle?: string;
-  projectId?: string;
+  projectId: string | null;
 }
 
 interface CompareContextType {

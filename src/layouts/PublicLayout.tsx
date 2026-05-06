@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router';
 import { MapPin } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const PublicLayout = () => {
   const { user } = useAuth();

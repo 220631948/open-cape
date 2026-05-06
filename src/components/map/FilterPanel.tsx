@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, Maximize2, Loader2 } from 'lucide-react';
-import { useMapFilters } from '@/src/hooks/useMapFilters';
-import { cn } from '@/src/lib/utils';
-import { Button } from '@/src/components/ui/Button';
-import { mapFilterStore, useMapFilterStore } from '@/src/store/mapFilterStore';
+import { X, Filter, Maximize2, Loader2, Sparkles, Bell } from 'lucide-react';
+import { useMapFilters } from '@/hooks/useMapFilters';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
+import { mapFilterStore, useMapFilterStore } from '@/store/mapFilterStore';
+import { useGeminiQuery } from '@/hooks/useGeminiQuery';
+import { useWatchlists } from '@/hooks/useWatchlists';
 
 interface FilterPanelProps {
   onClose?: () => void;
@@ -20,6 +22,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onClose, className, on
 
   const [propertyTypes, setPropertyTypes] = useState<string[]>([]);
   const [loadingPropertyTypes, setLoadingPropertyTypes] = useState(false);
+
+  const [aiQuery, setAiQuery] = useState('');
+  const { parseQuery, loading: aiLoading, error: aiError } = useGeminiQuery();
+  const { createWatchlist } = useWatchlists();
 
   useEffect(() => {
     mapFilterStore.fetchMunicipalities();
@@ -50,11 +56,44 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onClose, className, on
     });
   };
 
+  const handleAiQuery = async () => {
+    if (!aiQuery.trim()) return;
+    const result = await parseQuery(aiQuery);
+    if (result) {
+       const newFilters: any = {};
+       if (result.municipality) newFilters.locations = [result.municipality];
+       if (result.zoning && result.zoning.length > 0) newFilters.propertyTypes = result.zoning;
+       if (result.priceMin !== undefined) {
+         setMinPriceTemp(result.priceMin.toString());
+         newFilters.priceMin = result.priceMin;
+       }
+       if (result.priceMax !== undefined) {
+         setMaxPriceTemp(result.priceMax.toString());
+         newFilters.priceMax = result.priceMax;
+       }
+       setFilters(newFilters);
+       setAiQuery(''); // Clear after apply
+    }
+  };
+
   const toggleArrayItem = (arr: string[], item: string, key: 'locations' | 'propertyTypes' | 'features') => {
     const newArr = arr.includes(item) ? arr.filter(i => i !== item) : arr.concat([item]);
     if (key === 'locations') setFilters({ locations: newArr });
     else if (key === 'propertyTypes') setFilters({ propertyTypes: newArr });
     else if (key === 'features') setFilters({ features: newArr });
+  };
+
+  const handleSaveWatchlist = async () => {
+    const name = prompt("Enter a name for this watchlist:");
+    if (name) {
+       await createWatchlist(name, {
+         allotmentArea: filters.locations[0], // Simplified taking first location
+         zoning: filters.propertyTypes[0],
+         minPrice: filters.priceMin || undefined,
+         maxPrice: filters.priceMax || undefined
+       });
+       alert("Watchlist saved! You will receive alerts when new properties match.");
+    }
   };
 
   return (
@@ -79,6 +118,28 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onClose, className, on
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        
+        {/* AI Query */}
+        <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg space-y-2">
+           <h3 className="text-xs font-semibold text-indigo-900 flex items-center gap-1.5">
+             <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> Natural Language Filters
+           </h3>
+           <div className="flex gap-2">
+             <input 
+               type="text"
+               value={aiQuery}
+               onChange={(e) => setAiQuery(e.target.value)}
+               placeholder="e.g. farms in Cape Town"
+               className="flex-1 text-sm bg-white border border-indigo-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+               onKeyDown={(e) => e.key === 'Enter' && handleAiQuery()}
+             />
+             <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-auto py-1" onClick={handleAiQuery} disabled={aiLoading || !aiQuery.trim()}>
+               {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
+             </Button>
+           </div>
+           {aiError && <p className="text-[10px] text-red-600">{aiError}</p>}
+        </div>
+
         {/* Location (Municipalities) */}
         <div className="space-y-3">
           <h3 className="text-xs font-semibold text-surface-500 uppercase tracking-wider flex justify-between items-center">
@@ -128,14 +189,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onClose, className, on
 
       </div>
 
-      {activeCount > 0 && onZoomToFit && (
-        <div className="p-4 border-t border-surface-200 bg-surface-50 shrink-0">
+      {activeCount > 0 && (
+        <div className="p-4 border-t border-surface-200 bg-surface-50 shrink-0 space-y-2">
+          {onZoomToFit && (
+            <Button 
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+              onClick={onZoomToFit}
+            >
+              <Maximize2 className="w-4 h-4" />
+              Zoom to Fit Results
+            </Button>
+          )}
           <Button 
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
-            onClick={onZoomToFit}
+            className="w-full flex items-center justify-center gap-2"
+            variant="outline"
+            onClick={handleSaveWatchlist}
           >
-            <Maximize2 className="w-4 h-4" />
-            Zoom to Fit Results
+            <Bell className="w-4 h-4" />
+            Save Search as Watchlist
           </Button>
         </div>
       )}

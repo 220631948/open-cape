@@ -1,7 +1,7 @@
 import React from 'react';
 import { Popup } from "react-map-gl/maplibre";
 import { MapPin, ShieldCheck } from 'lucide-react';
-import { useProfile } from '@/src/contexts/useProfile';
+import { useProfile } from '@/contexts/useProfile';
 
 interface FeaturePopupProps {
   popupInfo: { lngLat: [number, number]; feature: any; layerId: string };
@@ -21,6 +21,7 @@ export const FeaturePopup: React.FC<FeaturePopupProps> = ({ popupInfo, onClose, 
   }
 
   const layerName = popupInfo.layerId.replace("layer-", "").replace(/_/g, " ");
+  const isDrawingAnnotation = popupInfo.layerId === 'drawing-annotation';
 
   return (
     <Popup
@@ -32,20 +33,31 @@ export const FeaturePopup: React.FC<FeaturePopupProps> = ({ popupInfo, onClose, 
       className="z-50 !p-0"
       maxWidth="320px"
     >
-      <div className="flex flex-col w-[280px] sm:w-[320px] max-h-[400px] overflow-hidden -m-px rounded-xl bg-white shadow-xl border border-surface-200 pointer-events-auto">
+      <div className="flex flex-col w-[280px] sm:w-[320px] max-h-[450px] overflow-hidden -m-px rounded-xl bg-white shadow-xl border border-surface-200 pointer-events-auto">
         <div className="bg-surface-50 border-b border-surface-200 p-3 pt-4 pb-2 flex items-start justify-between shrink-0">
           <div>
             <h4 className="font-bold text-surface-900 capitalize leading-tight flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-rose-500 shrink-0" />
-              {layerName} Feature
+              {isDrawingAnnotation ? 'Image Annotation' : `${layerName} Feature`}
             </h4>
             <span className="text-[10px] text-surface-500 font-medium uppercase tracking-wider mt-0.5 block">
-               ID: {popupInfo.feature.properties?.OBJECTID || popupInfo.feature.properties?.id || 'N/A'}
+               {isDrawingAnnotation ? popupInfo.feature.properties?.title : `ID: ${popupInfo.feature.properties?.OBJECTID || popupInfo.feature.properties?.id || 'N/A'}`}
             </span>
           </div>
         </div>
         
         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+          {isDrawingAnnotation && popupInfo.feature.properties?.imageUrl && (
+            <div className="rounded-lg overflow-hidden border border-surface-200 bg-surface-100 aspect-video relative">
+              <img 
+                src={popupInfo.feature.properties.imageUrl} 
+                alt={popupInfo.feature.properties.title || 'Annotation'} 
+                className="absolute inset-0 w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          )}
+
           {osint && (
             <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-xs">
               <div className="font-bold text-emerald-900 mb-1.5 flex items-center justify-between">
@@ -60,9 +72,28 @@ export const FeaturePopup: React.FC<FeaturePopupProps> = ({ popupInfo, onClose, 
             </div>
           )}
 
+          <div className="flex gap-2 mb-2 pb-2 border-b border-surface-100 flex-wrap">
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${popupInfo.lngLat[1]},${popupInfo.lngLat[0]}`}
+              target="_blank" 
+              rel="noreferrer"
+              className="text-[10px] text-blue-600 hover:text-blue-800 underline bg-blue-50 px-2 py-1 rounded"
+            >
+              Google Maps
+            </a>
+            <a 
+              href={`https://www.openstreetmap.org/?mlat=${popupInfo.lngLat[1]}&mlon=${popupInfo.lngLat[0]}#map=18/${popupInfo.lngLat[1]}/${popupInfo.lngLat[0]}`}
+              target="_blank" 
+              rel="noreferrer"
+              className="text-[10px] text-blue-600 hover:text-blue-800 underline bg-blue-50 px-2 py-1 rounded"
+            >
+              OpenStreetMap
+            </a>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(popupInfo.feature.properties || {})
-              .filter(([key, value]) => !key.startsWith("SHAPE") && key !== "OBJECTID" && key !== "_osint" && value !== null && value !== "")
+              .filter(([key, value]) => !key.startsWith("SHAPE") && key !== "OBJECTID" && key !== "_osint" && key !== "imageUrl" && value !== null && value !== "")
               .map(([key, value]) => (
                 <div key={key} className="bg-surface-50 p-2 rounded-md border border-surface-100 col-span-2 sm:col-span-1">
                   <span className="block text-[9px] text-surface-400 uppercase font-bold tracking-wider mb-0.5 truncate" title={key.replace(/_/g, ' ')}>
@@ -76,22 +107,24 @@ export const FeaturePopup: React.FC<FeaturePopupProps> = ({ popupInfo, onClose, 
           </div>
         </div>
 
-        <div className="bg-surface-50 border-t border-surface-200 p-2 flex gap-2 shrink-0">
-          <button 
-            onClick={onBookmark}
-            className="flex-1 bg-white border border-surface-200 text-surface-700 text-xs px-2 py-1.5 rounded hover:bg-surface-50 font-medium transition-colors"
-          >
-            Bookmark
-          </button>
-          {profile?.role === 'analyst' && (
+        {!isDrawingAnnotation && (
+          <div className="bg-surface-50 border-t border-surface-200 p-2 flex gap-2 shrink-0">
             <button 
-              onClick={onVerify}
-              className="flex-1 bg-emerald-600 text-white shadow-sm text-xs px-2 py-1.5 rounded hover:bg-emerald-700 font-medium transition-colors"
+              onClick={onBookmark}
+              className="flex-1 bg-white border border-surface-200 text-surface-700 text-xs px-2 py-1.5 rounded hover:bg-surface-50 font-medium transition-colors"
             >
-              Verify Point
+              Bookmark
             </button>
-          )}
-        </div>
+            {profile?.role === 'analyst' && (
+              <button 
+                onClick={onVerify}
+                className="flex-1 bg-emerald-600 text-white shadow-sm text-xs px-2 py-1.5 rounded hover:bg-emerald-700 font-medium transition-colors"
+              >
+                Correct Location
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </Popup>
   );

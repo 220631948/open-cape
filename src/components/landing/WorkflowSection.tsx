@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Search, Layers, PenTool, BarChart2, Share } from 'lucide-react';
+import { ShieldCheck, Database, Key, CheckCircle, Share } from 'lucide-react';
 
 const STEPS = [
-  { icon: Search, title: "Search area", desc: "Find specific coordinates or addresses." },
-  { icon: Layers, title: "Turn on layers", desc: "Overlay relevant spatial datasets." },
-  { icon: PenTool, title: "Draw or measure", desc: "Mark boundaries and calculate distances." },
-  { icon: BarChart2, title: "Analyse patterns", desc: "Extract insights from intersecting geometries." },
-  { icon: Share, title: "Save or share", desc: "Export views for team collaboration." },
+  { icon: Database, title: "Provision Tenant", desc: "Create an isolated workspace for your organisation's spatial data." },
+  { icon: Key, title: "Assign Roles", desc: "Define access control limits using robust bit-level encryption schemas." },
+  { icon: ShieldCheck, title: "Secure Impersonation", desc: "Administrators log in as users without sharing credentials, strictly audited by cloud functions." },
+  { icon: CheckCircle, title: "Automated OSINT", desc: "Upload raw points, allowing our AI agent to parse and cross-reference them securely." },
+  { icon: Share, title: "Collaborate", desc: "Share vector maps inside your tenant with enforced data sovereignty." },
 ];
 
 export const WorkflowSection = () => {

@@ -1,16 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Trash2, Map, LayoutDashboard, Component, Bookmark, Building2, MapPin, Tag, MessageSquare, Plus, ShieldCheck, Info, X } from 'lucide-react';
-import { useCompareState, CompareItemType } from '@/src/contexts/CompareContext';
-import { Button } from '@/src/components/ui/Button';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
-import { useProjects } from '@/src/hooks/useProjects';
-import { LiveCompareColumn } from '@/src/components/compare/LiveCompareColumn';
+import { ArrowLeft, Trash2, Map, LayoutDashboard, Component, Bookmark, Building2, MapPin, Tag, MessageSquare, Plus, ShieldCheck, Info } from 'lucide-react';
+import { useCompareState, CompareItemType } from '@/contexts/CompareContext';
+import { Button, DataStatusBanner } from '@/components/ui';
+import { useProjects } from '@/hooks/useProjects';
+import { LiveCompareColumn } from '@/components/compare/LiveCompareColumn';
+import { AIComparisonSummary } from '@/components/compare/AIComparisonSummary';
 
 export const ComparePage = () => {
   const navigate = useNavigate();
   const { compareItems, removeFromCompare, clearCompare } = useCompareState();
   const { projects } = useProjects();
+
 
   const getIcon = (type: CompareItemType) => {
     switch (type) {
@@ -79,9 +80,12 @@ export const ComparePage = () => {
                </Button>
              </div>
            ) : (
-              <div className="flex gap-6 pb-8">
-                 {/* Left labels column */}
-                 <div className="w-48 shrink-0 flex flex-col gap-6 pt-[72px]">
+              <div className="space-y-6">
+                 <AIComparisonSummary items={compareItems} />
+                 
+                 <div className="flex gap-6 pb-8">
+                    {/* Left labels column */}
+                    <div className="w-48 shrink-0 flex flex-col gap-6 pt-[72px]">
                     <SectionLabel icon={<Info />} label="Summary" />
                     <SectionLabel icon={<Building2 />} label="Planning & Zoning" />
                     <SectionLabel icon={<Tag />} label="Market & Activity" />
@@ -108,6 +112,7 @@ export const ComparePage = () => {
                        <span className="font-medium text-sm">Add Item</span>
                     </div>
                  )}
+                 </div>
               </div>
            )}
         </div>

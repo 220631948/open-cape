@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
-import { geminiService, SpatialQueryFilters } from '@/src/services/geminiService';
-import { Input } from '@/src/components/ui/Input';
-import { cn } from '@/src/lib/utils';
-import { Button } from '@/src/components/ui/Button';
+import { geminiService, SpatialQueryFilters } from '@/services/geminiService';
+import { Input } from '@/components/ui/Input';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 interface SpatialCommandBarProps {
   onFiltersApplied: (filters: SpatialQueryFilters) => void;
@@ -34,7 +34,7 @@ export const SpatialCommandBar: React.FC<SpatialCommandBarProps> = ({
         setError("Could not extract mapping filters from query.");
         triggerShake();
       }
-    } catch (err) {
+    } catch (e) {
       setError("Failed to parse spatial query.");
       triggerShake();
     } finally {

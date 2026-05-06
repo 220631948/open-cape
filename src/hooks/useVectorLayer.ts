@@ -1,8 +1,8 @@
-/* eslint-disable no-restricted-syntax, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMap, MapRef } from 'react-map-gl/maplibre';
 import { fetchArcGISLayerAsGeoJSON } from '../lib/arcgis';
-import { useVerifiedLocations, VerifiedLocation } from './useVerifiedLocations';
+import { useVerifiedLocations } from './useVerifiedLocations';
 import { getViewportBBox } from '../utils/getViewportBBox';
 
 export interface VectorLayerConfig {
@@ -100,6 +100,30 @@ export const VECTOR_LAYERS: VectorLayerConfig[] = [
     url: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/40', // Typical CoCT WiFi layer ID (placeholder logic if exact is 40)
     color: '#10b981', // emerald-500
     icon: 'wifi',
+    fields: '*'
+  },
+  {
+    id: 'citizen_reports',
+    name: 'Citizen Reports (C3)',
+    url: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/56', // Placeholder URL for demo context
+    color: '#f59e0b', // amber-500
+    icon: 'message-square',
+    fields: '*'
+  },
+  {
+    id: 'electricity_substations',
+    name: 'Electricity Substations',
+    url: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/14', // Placeholder
+    color: '#fbbf24', 
+    icon: 'zap',
+    fields: '*'
+  },
+  {
+    id: 'water_pipelines',
+    name: 'Water Pipelines',
+    url: 'https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/EGISViewer/MapServer/15', // Placeholder
+    color: '#3b82f6', 
+    icon: 'droplets',
     fields: '*'
   }
 ];

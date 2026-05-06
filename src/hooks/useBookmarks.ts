@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { sanitizeForFirestore } from '@/src/lib/firestoreUtils';
+import { collection, query, where, getDocs, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeForFirestore } from '@/lib/firestoreUtils';
 
 export interface Bookmark {
   id: string;
@@ -11,7 +11,8 @@ export interface Bookmark {
   label: string;
   type: 'map-state' | 'feature' | 'area' | 'placeholder';
   mapStateRef?: string;
-  projectId?: string;
+  mapState?: any;
+  projectId: string | null;
   featureRef?: any;
   sourceRefs: string[];
   notes?: string;
@@ -68,21 +69,6 @@ export function useBookmarks(projectId?: string) {
     
     await setDoc(doc(db, 'bookmarks', id), bookmarkToSave);
     
-    // Also attach to project if needed
-    if (bookmarkToSave.projectId) {
-       // we update it lazily or strictly relying on `projectId` inside bookmark.
-       // The prompt says "project detail page lists bookmarks". Using the property projectId on bookmark is perfect.
-       // However, we should also update the project's bookmarkIds per schema.
-       const projectRef = doc(db, 'saved_projects', bookmarkToSave.projectId);
-       // we can push to array. But since we use where('projectId', '==', ...) it's sufficient for listing.
-       // Firestore doesn't support easy arrayUnion locally without get+set but we can do a lazy update or skip since projectId is on bookmark.
-       // To be rigorous:
-       try {
-           const pSnap = await getDocs(query(collection(db, 'saved_projects'), where('id', '==', bookmarkToSave.projectId)));
-           // let's do a fast arrayUnion later if needed. For now simpler schema: bookmark.projectId drives the relationship.
-       } catch (e) {}
-    }
-
     await fetchBookmarks();
     return id;
   };

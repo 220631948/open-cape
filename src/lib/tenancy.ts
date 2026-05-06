@@ -2,8 +2,8 @@ import {
   db, 
   auth 
 } from './firebase';
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, increment } from 'firebase/firestore';
-import { setDoc, updateDoc } from '@/src/lib/safeFirestore';;
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, increment, deleteDoc } from 'firebase/firestore';
+import { setDoc, updateDoc } from '@/lib/safeFirestore';;
 
 export interface Tenant {
   id: string;
@@ -57,7 +57,6 @@ export const deleteTenantRole = async (tenantId: string, roleId: string) => {
   if (roleId === 'owner') throw new Error("Cannot delete the Owner role.");
   
   // Since we don't have safe deleteDoc imported, let's just use updateDoc and mark it deleted if we want, or import deleteDoc
-  const { deleteDoc } = await import('firebase/firestore');
   await deleteDoc(doc(db, 'tenants', tenantId, 'roles', roleId));
 };
 
@@ -67,7 +66,7 @@ export const createTenant = async (name: string) => {
   if (!user) throw new Error('User must be authenticated to create a tenant.');
 
   // Check if user already has a tenant
-  const userProfileRef = doc(db, 'user_profiles', user.uid);
+  const userProfileRef = doc(db, 'users', user.uid);
   const userProfile = await getDoc(userProfileRef);
   if (userProfile.exists() && userProfile.data().tenantId) {
     throw new Error('User is already associated with a tenant.');
@@ -111,9 +110,11 @@ export const getTenant = async (tenantId: string) => {
   return snap.exists() ? snap.data() as Tenant : null;
 };
 
-export const getTenantUsers = async (tenantId: string): Promise<any[]> => {
-  const usersRef = collection(db, 'user_profiles');
-  const q = query(usersRef, where('tenantId', '==', tenantId));
+export const getTenantUsers = async (tenantId?: string | null): Promise<any[]> => {
+  const usersRef = collection(db, 'users');
+  const q = tenantId 
+    ? query(usersRef, where('tenantId', '==', tenantId))
+    : query(usersRef);
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
 };
@@ -133,7 +134,7 @@ export const addMemberToTenant = async (tenantId: string, email: string, role: s
     throw new Error(`Tenant user limit reached (${tenantData.maxUsers} users).`);
   }
 
-  const usersRef = collection(db, 'user_profiles');
+  const usersRef = collection(db, 'users');
   const q = query(usersRef, where('email', '==', email));
   const snap = await getDocs(q);
   
@@ -159,7 +160,7 @@ export const addMemberToTenant = async (tenantId: string, email: string, role: s
 };
 
 export const updateMemberRole = async (userId: string, newRole: string) => {
-  const userRef = doc(db, 'user_profiles', userId);
+  const userRef = doc(db, 'users', userId);
   await updateDoc(userRef, {
     role: newRole,
     updatedAt: serverTimestamp()
@@ -167,7 +168,7 @@ export const updateMemberRole = async (userId: string, newRole: string) => {
 };
 
 export const removeMemberFromTenant = async (tenantId: string, userId: string) => {
-  const userRef = doc(db, 'user_profiles', userId);
+  const userRef = doc(db, 'users', userId);
   await updateDoc(userRef, {
     tenantId: null,
     role: null,

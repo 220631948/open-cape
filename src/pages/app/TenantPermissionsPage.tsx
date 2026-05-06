@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Check, ShieldAlert } from 'lucide-react';
+import { Check, ShieldAlert } from 'lucide-react';
 
 export const TenantPermissionsPage: React.FC = () => {
   const categories = [

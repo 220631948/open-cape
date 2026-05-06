@@ -1,11 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, ExternalLink, ShieldCheck, Database, Calendar, Map } from 'lucide-react';
-import { useSourceCatalog } from '@/src/hooks/useSourceCatalog';
-import { Button } from '@/src/components/ui/Button';
-import { DataStatusBanner } from '@/src/components/ui/DataStatusBanner';
-import { SourceBadge } from '@/src/components/ui/SourceBadge';
-import { DataFreshnessPill } from '@/src/components/ui/DataFreshnessPill';
+import { useSourceCatalog } from '@/hooks/useSourceCatalog';
+import { Button, DataStatusBanner, SourceBadge, DataFreshnessPill } from '@/components/ui';
 
 export const SourceDetailPage = () => {
    const { sourceId } = useParams<{ sourceId: string }>();

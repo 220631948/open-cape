@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter } from '@/src/components/ui/Card';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
+import { Card, CardContent, CardFooter } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'motion/react';
-import { WebGLBackground } from '@/src/components/ui/WebGLBackground';
+import { WebGLBackground } from '@/components/ui/WebGLBackground';
 import { ShieldCheck, UserPlus, Building2 } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 export const SignUpPage = () => {
   const { signUpWithEmail, signInWithGoogle, user } = useAuth();
@@ -106,30 +106,42 @@ export const SignUpPage = () => {
           <CardContent className="p-10 space-y-8">
             <form onSubmit={handleEmailSignUp} className="space-y-6">
               <div className="space-y-4">
-                <Input 
-                  type="email" 
-                  placeholder="Email address" 
-                  className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                />
-                <Input 
-                  type="password" 
-                  placeholder="Security Password" 
-                  className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                />
-                <Input 
-                  type="password" 
-                  placeholder="Verification Hash" 
-                  className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  required 
-                />
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-xs font-medium text-surface-400 pl-1">Email Address</label>
+                  <Input 
+                    id="email"
+                    type="email" 
+                    placeholder="name@company.com" 
+                    className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-xs font-medium text-surface-400 pl-1">Password</label>
+                  <Input 
+                    id="password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="confirmPassword" className="text-xs font-medium text-surface-400 pl-1">Confirm Password</label>
+                  <Input 
+                    id="confirmPassword"
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="bg-surface-800/50 border-white/5 text-white placeholder:text-surface-500 min-h-[56px] rounded-2xl px-5 focus:ring-indigo-500 ring-offset-surface-950" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
                 {error && <div className="text-[11px] font-bold text-rose-400 mt-2 flex items-center gap-2 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 uppercase tracking-wider font-mono"><ShieldCheck className="h-4 w-4" />{error}</div>}
               </div>
               <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white min-h-[60px] font-bold text-base rounded-2xl shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98] border-0" disabled={isLoading || isGoogleLoading}>

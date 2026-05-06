@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface DepthCardProps {
   children: React.ReactNode;

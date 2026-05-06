@@ -1,7 +1,7 @@
 import React from 'react';
-import { useConnectionHealth } from '@/src/contexts/ConnectionHealthContext';
+import { useConnectionHealth } from '@/contexts/ConnectionHealthContext';
 import { Activity, CheckCircle2, XCircle, Clock, RefreshCw } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { Button } from './Button';
 
 export const ConnectionDashboard: React.FC = () => {

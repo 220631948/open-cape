@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ShieldCheck, Info, Plus, Trash2, Edit2 } from 'lucide-react';
-import { Button } from '@/src/components/ui/Button';
-import { useProfile } from '@/src/contexts/useProfile';
-import { getTenantRoles, deleteTenantRole, TenantRole, getTenantUsers } from '@/src/lib/tenancy';
+import { Button } from '@/components/ui/Button';
+import { useProfile } from '@/contexts/useProfile';
+import { getTenantRoles, deleteTenantRole, TenantRole, getTenantUsers } from '@/lib/tenancy';
 
 export const TenantRolesPage: React.FC = () => {
   const navigate = useNavigate();

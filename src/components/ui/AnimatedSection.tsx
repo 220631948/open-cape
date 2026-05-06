@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useInView } from 'motion/react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;

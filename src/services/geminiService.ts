@@ -1,7 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { ErfRecord } from "../hooks/useErfSearch";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_INSTRUCTION = "You are a factual property analyst. Base all answers strictly on the provided JSON context. If the data is missing, state 'Insufficient data'. Do not guess property values. AI estimates must be clearly labeled: 'AI-generated insight based on available data.'";
 
@@ -18,46 +15,33 @@ export interface SpatialQueryFilters {
 export const geminiService = {
   /**
    * PII Scrubber: Strips protected owner data before passing to LLM.
-   * [RALPH] - Ensures POPIA compliance.
    */
   scrubParcelData(parcel: Partial<ErfRecord>): Partial<ErfRecord> {
-    // eslint-disable-next-line no-restricted-syntax
     const cleanData = { ...parcel };
-    // Explicitly delete sensitive personal information
-    delete cleanData.ownerName;
-    delete cleanData.ownerType;
-    delete cleanData.ownershipCategory;
+    delete (cleanData as any).ownerName;
+    delete (cleanData as any).ownerType;
+    delete (cleanData as any).ownershipCategory;
+    delete (cleanData as any).idNumber;
     return cleanData;
   },
 
   /**
-   * Parses natural language into strict JSON filters.
-   * [BART] - Uses Structured Outputs for guaranteed JSON consistency.
+   * Parses natural language into strict JSON filters via server proxy.
    */
   async parseSpatialQuery(query: string): Promise<SpatialQueryFilters | null> {
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Parse the following search query into spatial mapping filters: "${query}"`,
-        config: {
-          systemInstruction: "You are a strict spatial query parser. Extract and normalize map filters from the user query into the requested JSON schema. Omit properties if they are not explicitly mentioned.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              priceMin: { type: Type.NUMBER, description: "Minimum price limit in ZAR" },
-              priceMax: { type: Type.NUMBER, description: "Maximum price limit in ZAR" },
-              municipality: { type: Type.STRING, description: "City or municipality name (e.g., Cape Town)" },
-              zoning: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Specific zoning categories mentioned (e.g., Commercial, Residential, Industrial)" },
-              propertyExtentsMin: { type: Type.NUMBER, description: "Minimum property size/extent in square meters" },
-              propertyExtentsMax: { type: Type.NUMBER, description: "Maximum property size/extent in square meters" },
-              keyword: { type: Type.STRING, description: "General search keywords if specific filters do not apply" }
-            }
-          }
-        }
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'parseQuery',
+          payload: { query }
+        })
       });
-      if (response.text) {
-        return JSON.parse(response.text) as SpatialQueryFilters;
+      
+      const data = await response.json();
+      if (data.text) {
+        return JSON.parse(data.text) as SpatialQueryFilters;
       }
       return null;
     } catch (e) {
@@ -67,56 +51,95 @@ export const geminiService = {
   },
 
   /**
-   * Generates a conversational response about market trends based on aggregated bounds data.
+   * Generates a conversational response about market trends via server proxy.
    */
   async *streamMarketChat(query: string, viewportStats: Record<string, unknown>) {
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `User Context & Viewport Stats: ${JSON.stringify(viewportStats)}\n\nUser Question: ${query}`,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION + " Provide a short, highly analytical response regarding current market trends based ONLY on the viewport stats provided.",
-        }
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          payload: {
+            prompt: `User Context & Viewport Stats: ${JSON.stringify(viewportStats)}\n\nUser Question: ${query}`,
+            systemInstruction: SYSTEM_INSTRUCTION + " Provide a short, highly analytical response regarding current market trends based ONLY on the viewport stats provided."
+          }
+        })
       });
       
-      if (response.text) {
-        yield response.text;
+      const data = await response.json();
+      if (data.text) {
+        yield data.text;
       }
     } catch (e: any) {
       console.error("Failed to stream market chat:", e);
-      if (e?.status === 429 || e?.message?.includes('429') || e?.message?.includes('RESOURCE_EXHAUSTED') || e?.message?.includes('exceeded your current quota')) {
-        yield "⚠️ **API Quota Exceeded**\n\nThe AI Assistant has reached its usage limit for the Gemini API. Please check your billing details or try again later.";
-      } else {
-        yield "Error analyzing market trends.";
-      }
+      yield "Error analyzing market trends: " + e.message;
     }
   },
 
   /**
-   * Streams a parcel insights summary, effectively using RAG over the parcel's attributes.
+   * Generic text generation utility via server proxy.
    */
-  async *streamParcelInsights(parcel: Partial<ErfRecord>) {
-    const safeData = this.scrubParcelData(parcel);
-    
+  async generateText(prompt: string, systemInstruction: string = SYSTEM_INSTRUCTION): Promise<string | null> {
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Provide a 2-paragraph Investment & Context Summary for the following property data: ${JSON.stringify(safeData)}`,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-        }
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'insights',
+          payload: { prompt, systemInstruction }
+        })
       });
       
-      if (response.text) {
-        yield response.text;
+      const data = await response.json();
+      return data.text || null;
+    } catch (e: any) {
+      console.error("Failed to generate text:", e);
+      return null;
+    }
+  },
+
+  /**
+   * Streams a parcel insights summary via server proxy.
+   */
+  async *streamParcelInsights(parcel: Partial<ErfRecord>, context?: { valuationResult?: any, riskAssessment?: any }) {
+    const safeData = this.scrubParcelData(parcel);
+    const contextPrompt = context ? `
+Calculated Valuation Context: ${JSON.stringify(context.valuationResult)}
+Risk & Compliance Assessment: ${JSON.stringify(context.riskAssessment)}
+` : '';
+
+    try {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'insights',
+          payload: {
+            prompt: `
+            Analyze this property for investment potential and market context. 
+            Property Data: ${JSON.stringify(safeData)}
+            ${contextPrompt}
+            
+            Focus on:
+            1. Investment Yield Potential.
+            2. Local Area Trends.
+            3. Development Constraints or Risks.
+            
+            Use Markdown formatting with bold headers.
+            `,
+            systemInstruction: SYSTEM_INSTRUCTION,
+          }
+        })
+      });
+      
+      const data = await response.json();
+      if (data.text) {
+        yield data.text;
       }
     } catch (e: any) {
-      console.error("Failed to stream parcel insights:", e);
-      if (e?.status === 429 || e?.message?.includes('429') || e?.message?.includes('RESOURCE_EXHAUSTED') || e?.message?.includes('exceeded your current quota')) {
-        yield "⚠️ **API Quota Exceeded**\n\nThe AI Assistant has reached its usage limit for the Gemini API. Please check your billing details or try again later.";
-      } else {
-        yield "Error generating insights.";
-      }
+      console.error("Failed to extract parcel insights:", e);
+      yield "Error generating insights: " + e.message;
     }
   }
 };

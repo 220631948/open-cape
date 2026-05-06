@@ -1,26 +1,33 @@
 import React, { useState } from 'react';
-import { useAnnotations, Annotation } from '@/src/hooks/useAnnotations';
-import { useProjects } from '@/src/hooks/useProjects';
-import { AnnotationCard } from '@/src/components/annotations/AnnotationCard';
-import { AnnotationEditor } from '@/src/components/annotations/AnnotationEditor';
-import { EmptyState } from '@/src/components/ui/EmptyState';
-import { Skeleton } from '@/src/components/ui/Skeleton';
-import { MessageSquare, Search, Map as MapIcon, Plus } from 'lucide-react';
+import { useAnnotations, Annotation } from '@/hooks/useAnnotations';
+import { useProjects } from '@/hooks/useProjects';
+import { AnnotationCard } from '@/components/annotations/AnnotationCard';
+import { AnnotationEditor } from '@/components/annotations/AnnotationEditor';
+import { EmptyState, Skeleton, Button } from '@/components/ui';
+import { MessageSquare, Search, Map as MapIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { Button } from '@/src/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 export const AnnotationsPage = () => {
   const navigate = useNavigate();
   const { annotations, isLoading, deleteAnnotation, updateAnnotation } = useAnnotations();
   const { projects } = useProjects();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
   const [editingAnnotation, setEditingAnnotation] = useState<Annotation | null>(null);
 
-  const filteredAnnotations = annotations.filter(a => 
-    a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.targetType.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAnnotations = annotations.filter(a => {
+    const projName = getProjectName(a.projectId)?.toLowerCase() || '';
+    const matchesSearch = 
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.targetType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      projName.includes(searchQuery.toLowerCase());
+    
+    if (filterType !== 'all' && a.targetType !== filterType) return false;
+    
+    return matchesSearch;
+  });
 
   const getProjectName = (projectId?: string) => {
     if (!projectId) return undefined;
@@ -66,15 +73,33 @@ export const AnnotationsPage = () => {
         </Button>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-surface-200 shadow-sm relative mb-8">
-        <Search className="absolute left-7 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
-        <input 
-           type="text" 
-           value={searchQuery}
-           onChange={(e) => setSearchQuery(e.target.value)}
-           placeholder="Search notes by subject, content, or target..."
-           className="w-full pl-10 pr-4 py-2.5 bg-surface-50 border border-surface-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-surface-400 transition-all"
-        />
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+          <input 
+             type="text" 
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             placeholder="Search notes by subject, content, or project..."
+             className="w-full pl-10 pr-4 py-3 bg-white border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-surface-400 shadow-sm transition-all"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 p-1 bg-surface-100 rounded-xl border border-surface-200 overflow-x-auto max-w-full scrollbar-none">
+          {['all', 'drawing', 'map', 'saved-map'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap",
+                filterType === type 
+                  ? "bg-white text-surface-900 shadow-sm ring-1 ring-surface-200" 
+                  : "text-surface-500 hover:text-surface-700"
+              )}
+            >
+              {type.replace('-', ' ')}
+            </button>
+          ))}
+        </div>
       </div>
 
       {annotations.length === 0 ? (
@@ -93,7 +118,10 @@ export const AnnotationsPage = () => {
               <Search className="h-8 w-8 text-surface-300" />
            </div>
            <h3 className="text-lg font-semibold text-surface-900">No matching notes</h3>
-           <p className="text-surface-500 max-w-xs mt-1">Try refining your search terms.</p>
+           <p className="text-surface-500 max-w-xs mt-1">Try refining your search terms or clearing filters.</p>
+           <Button variant="link" onClick={() => { setSearchQuery(''); setFilterType('all'); }} className="mt-2 text-surface-900 font-bold uppercase tracking-widest text-[10px]">
+              Clear all filters
+           </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -117,8 +145,10 @@ export const AnnotationsPage = () => {
              targetId={editingAnnotation.targetId}
              initialTitle={editingAnnotation.title}
              initialBody={editingAnnotation.body}
+             initialImageUrl={editingAnnotation.imageUrl}
              projectId={editingAnnotation.projectId}
              sourceRefs={editingAnnotation.sourceRefs}
+             initialGeometry={editingAnnotation.geometry}
              onSave={handleUpdate}
              onClose={() => setEditingAnnotation(null)}
            />

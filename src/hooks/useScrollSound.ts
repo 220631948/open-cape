@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useScroll, useMotionValueEvent } from 'motion/react';
 
 export const useScrollSound = () => {

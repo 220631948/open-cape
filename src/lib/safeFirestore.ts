@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+/* eslint-disable no-restricted-imports */
 import { 
   setDoc as fsSetDoc, 
   addDoc as fsAddDoc, 
@@ -9,6 +9,7 @@ import {
   SetOptions,
   UpdateData
 } from 'firebase/firestore';
+/* eslint-enable no-restricted-imports */
 import { sanitizeForFirestore } from './firestoreUtils';
 
 export const setDoc = async <T extends import('firebase/firestore').DocumentData>(

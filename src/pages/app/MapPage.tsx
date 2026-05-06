@@ -1,52 +1,55 @@
-/* eslint-disable no-restricted-syntax, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useCallback, useRef } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useLocation } from "react-router";
 import Map, {
   MapRef,
   Source,
   Layer,
-  Popup,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { LayerPanel } from "@/src/components/map/LayerPanel";
-import { RightDetailDrawer } from "@/src/components/map/RightDetailDrawer";
-import { ViewportStatusBar } from "@/src/components/map/ViewportStatusBar";
-import { AddBookmarkDialog } from "@/src/components/map/AddBookmarkDialog";
-import { SaveMapDialog } from "@/src/components/map/SaveMapDialog";
-import { SourceManager } from "@/src/components/map/SourceManager";
-import { ALL_SOURCES } from "@/src/sources";
-import { useProjects } from "@/src/hooks/useProjects";
-import { ErfRecord, useErfSearch } from "@/src/hooks/useErfSearch";
-import { motion, AnimatePresence } from "motion/react";
-import { DrawControl } from "@/src/components/map/DrawControl";
-import { DrawToolbar, DrawMode } from "@/src/components/map/DrawToolbar";
-import { DrawingStyleEditor } from "@/src/components/map/DrawingStyleEditor";
-import { AnnotationEditor } from "@/src/components/annotations/AnnotationEditor";
-import { MapSearch } from "@/src/components/map/MapSearch";
-import { SpatialCommandBar } from "@/src/components/ai/SpatialCommandBar";
-import { MarketChatPanel } from "@/src/components/ai/MarketChatPanel";
-import { FilterPanel } from "@/src/components/map/FilterPanel";
-import { SpatialQueryFilters } from "@/src/services/geminiService";
-import { useDrawings, Drawing, DrawingStyle } from "@/src/hooks/useDrawings";
-import { useAnnotations, Annotation } from "@/src/hooks/useAnnotations";
-import { AnnotationCard } from "@/src/components/annotations/AnnotationCard";
-import { useSavedMaps } from "@/src/hooks/useSavedMaps";
-import { getLiveErfRecord } from "@/src/source_connectors/cctOpenDataClient";
-import { useProfile } from "@/src/contexts/useProfile";
-import { useLayerPreferences } from "@/src/contexts/useLayerPreferences";
-import { useEnvironmentalContext } from "@/src/contexts/EnvironmentalContext";
-import { ActiveVectorLayer } from "@/src/components/map/ActiveVectorLayer";
-import { FeaturePopup } from "@/src/components/map/FeaturePopup";
-import { VECTOR_LAYERS } from "@/src/hooks/useVectorLayer";
-import { useOSINTVerification } from "@/src/hooks/useOSINTVerification";
-import { useImportedGeoJsonLayers } from "@/src/hooks/useImportedGeoJsonLayers";
-import { OsintDrawer } from "@/src/components/map/OsintDrawer";
-import { SearchBar } from "@/src/components/map/SearchBar";
+import { LayerPanel } from "@/components/map/LayerPanel";
+import { RightDetailDrawer } from "@/components/map/RightDetailDrawer";
+import { ViewportStatusBar } from "@/components/map/ViewportStatusBar";
+import { AddBookmarkDialog } from "@/components/map/AddBookmarkDialog";
+import { SaveMapDialog } from "@/components/map/SaveMapDialog";
+import { SourceManager } from "@/components/map/SourceManager";
+import { ProjectPulseLayer } from "@/components/map/ProjectPulseLayer";
+import { ALL_SOURCES } from "@/sources";
+import { useProjects } from "@/hooks/useProjects";
+import { ErfRecord, useErfSearch } from "@/hooks/useErfSearch";
+import { AnimatePresence, motion } from "motion/react";
+import { DrawControl } from "@/components/map/DrawControl";
+import { DrawToolbar, DrawMode } from "@/components/map/DrawToolbar";
+import { DrawingStyleEditor } from "@/components/map/DrawingStyleEditor";
+import { AnnotationEditor } from "@/components/annotations/AnnotationEditor";
+import { SpatialCommandBar } from "@/components/ai/SpatialCommandBar";
+import { MarketChatPanel } from "@/components/ai/MarketChatPanel";
+import { FilterPanel } from "@/components/map/FilterPanel";
+import { SpatialQueryFilters } from "@/services/geminiService";
+import { useDrawings, Drawing, DrawingStyle } from "@/hooks/useDrawings";
+import { useAnnotations, Annotation } from "@/hooks/useAnnotations";
+import { useSavedMaps } from "@/hooks/useSavedMaps";
+import { getLiveErfRecord } from "@/source_connectors/cctOpenDataClient";
+import { useProfile } from "@/contexts/useProfile";
+import { useLayerPreferences } from "@/contexts/useLayerPreferences";
+import { useEnvironmentalContext } from "@/contexts/EnvironmentalContext";
+import { FeaturePopup } from "@/components/map/FeaturePopup";
+import { useOSINTVerification } from "@/hooks/useOSINTVerification";
+import { useImportedGeoJsonLayers } from "@/hooks/useImportedGeoJsonLayers";
+import { OsintDrawer } from "@/components/map/OsintDrawer";
+import { OsintVerificationModal } from "@/components/map/OsintVerificationModal";
+import { SearchBar } from "@/components/map/SearchBar";
+import { useBookmarks } from "@/hooks/useBookmarks";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { MapPin, Layers, X, Filter } from "lucide-react";
+import { X, Layers, Filter } from "lucide-react";
 import * as turf from "@turf/turf";
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
+import { ActiveVectorLayer } from "@/components/map/ActiveVectorLayer";
+import { VECTOR_LAYERS } from "@/hooks/useVectorLayer";
+import { AnnotationCard } from "@/components/annotations/AnnotationCard";
+import { queryNearbyFeatures, getBufferPolygon, SpatialQueryResult } from "@/services/spatialAnalysisBus";
+import { RadiusResultsPanel } from "@/components/map/RadiusResultsPanel";
 
 const INITIAL_VIEW_STATE = {
   longitude: 19.0, // Western Cape approximate center
@@ -72,6 +75,36 @@ export const MapPage = () => {
 
   const { drawings, createDrawing, updateDrawing, deleteDrawing } =
     useDrawings();
+
+  const drawingAnnotationMarkers = useMemo(() => {
+    return {
+      type: "FeatureCollection",
+      features: drawings
+        .filter((d) => d.imageUrl)
+        .map((d) => {
+          let center;
+          try {
+            const geom = typeof d.geometry === 'string' ? JSON.parse(d.geometry) : d.geometry;
+            center = turf.centroid(geom as any);
+          } catch (e) {
+            console.error('Failed to calculate centroid for drawing', d.id, e);
+            return null;
+          }
+          
+          if (!center) return null;
+
+          return {
+            ...center,
+            properties: {
+              id: d.id,
+              imageUrl: d.imageUrl,
+              title: d.title,
+            },
+          };
+        })
+        .filter(Boolean),
+    };
+  }, [drawings]);
   const { annotations, createAnnotation, updateAnnotation, deleteAnnotation } = useAnnotations();
   const { savedMaps } = useSavedMaps();
   const { profile } = useProfile();
@@ -103,6 +136,8 @@ export const MapPage = () => {
   const [editingDrawing, setEditingDrawing] = useState<{
     title: string;
     style: DrawingStyle;
+    projectId: string | null;
+    imageUrl: string | null;
   } | null>(null);
 
   const [editingNote, setEditingNote] = useState<Annotation | null>(null);
@@ -111,7 +146,68 @@ export const MapPage = () => {
   const [isMapLoading, setIsMapLoading] = useState(false);
   const [oamHealth, setOamHealth] = useState<'healthy'|'degraded'|'offline'>('healthy');
   const [oamErrorMsg, setOamErrorMsg] = useState<string | null>(null);
+  const [customSources, setCustomSources] = useState<any[]>([]);
+
+  // Radius Analysis state
+  const [radiusResults, setRadiusResults] = useState<SpatialQueryResult[]>([]);
+  const [analysisRadius, setAnalysisRadius] = useState(500);
+  const [analysisCenter, setAnalysisCenter] = useState<[number, number] | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [radiusBuffer, setRadiusBuffer] = useState<any>(null);
+
+  useEffect(() => {
+    const handleAddCustomSource = (e: any) => {
+      const source = e.detail;
+      setCustomSources(prev => {
+        // Prevent duplicates
+        if (prev.find(s => s.id === source.id)) return prev;
+        return [...prev, source];
+      });
+      
+      // also ensure it's "active" if it's not already
+      if (source.id) {
+         setActiveLayers(prev => prev.includes(source.id) ? prev : [...prev, source.id]);
+      }
+    };
+    
+    window.addEventListener('map:add-custom-source', handleAddCustomSource);
+    return () => window.removeEventListener('map:add-custom-source', handleAddCustomSource);
+  }, []);
+
+  useEffect(() => {
+    const handleCenterOnFeature = (e: any) => {
+      const { geometry, parcelId } = e.detail;
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      if (geometry) {
+        try {
+          const bounds = turf.bbox(geometry as any);
+          map.fitBounds([bounds[0], bounds[1], bounds[2], bounds[3]], { 
+            padding: 100, 
+            duration: 1500,
+            maxZoom: 18
+          });
+        } catch (err) {
+          console.error('Failed to fit bounds to geometry:', err);
+        }
+      } else if (parcelId) {
+        // If we don't have geometry but have an ID, we might need to fetch it or rely on the fact that it's already selected
+        // For now, if geometry is null, we can at least try to find the selected erf if id matches
+        if (selectedErf && String(selectedErf.id) === String(parcelId)) {
+          const center = selectedErf.center;
+          if (center) {
+             map.flyTo({ center: [center.lng, center.lat], zoom: 17, duration: 1500 });
+          }
+        }
+      }
+    };
+
+    window.addEventListener('map:center-on-feature', handleCenterOnFeature);
+    return () => window.removeEventListener('map:center-on-feature', handleCenterOnFeature);
+  }, [selectedErf]);
   const [showPriceHeatmap, setShowPriceHeatmap] = useState(false);
+  const [showProjectPulse, setShowProjectPulse] = useState(true);
   const [showMarketChat, setShowMarketChat] = useState(false);
 
   const { activeLayers: eeActiveLayers } = useEnvironmentalContext();
@@ -124,6 +220,39 @@ export const MapPage = () => {
   const { updatePreferences } = useLayerPreferences();
 
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
+
+  // Keep MapboxDraw features on top of dynamic rasters/layers
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    
+    const enforceLayerOrder = () => {
+      try {
+        const style = map.getStyle();
+        if (!style) return;
+        
+        // Find all draw layers and move them to top
+        const drawLayers = style.layers.filter(l => l.id.startsWith('gl-draw-') || l.id === "guide");
+        drawLayers.forEach(layer => {
+          if (map.getLayer(layer.id)) map.moveLayer(layer.id);
+        });
+      } catch {
+        // map might be unmounted
+      }
+    };
+
+    map.on('styledata', enforceLayerOrder);
+    map.on('idle', enforceLayerOrder);
+    
+    // Initial run
+    const tid = setTimeout(enforceLayerOrder, 250);
+    
+    return () => {
+      clearTimeout(tid);
+      map.off('styledata', enforceLayerOrder);
+      map.off('idle', enforceLayerOrder);
+    };
+  }, [baseMap, activeLayers, layerOpacities, historicalYear]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
   // Initialize base on profile defaults
@@ -157,23 +286,25 @@ export const MapPage = () => {
       const next = prev.includes(layerId)
         ? prev.filter((id) => id !== layerId)
         : [...prev, layerId];
-      // Opt-in background sync to user preferences (could debounce this in production)
-      if (layerPrefs) {
-        updatePreferences({ defaultViews: next });
-      }
       return next;
     });
   };
 
+  useEffect(() => {
+    if (layerPrefs && initialLockRef.current) {
+      updatePreferences({ defaultViews: activeLayers });
+    }
+  }, [activeLayers, layerPrefs, updatePreferences]);
+
   const handleOpacityChange = (layerId: string, opacity: number) => {
-    setLayerOpacities(prev => {
-      const next = { ...prev, [layerId]: opacity };
-      if (layerPrefs) {
-         updatePreferences({ opacities: next });
-      }
-      return next;
-    });
+    setLayerOpacities(prev => ({ ...prev, [layerId]: opacity }));
   };
+
+  useEffect(() => {
+    if (layerPrefs && initialLockRef.current) {
+       updatePreferences({ opacities: layerOpacities });
+    }
+  }, [layerOpacities, layerPrefs, updatePreferences]);
 
   useEffect(() => {
     if (showBuffer && selectedErf?.geometry) {
@@ -196,13 +327,44 @@ export const MapPage = () => {
       focusDrawing?: Drawing;
       savedMapId?: string;
       showBuffer?: boolean;
+      queryErfNumber?: string;
     };
 
     if (state?.showBuffer) {
       setShowBuffer(true);
     }
 
-    if (state?.savedMapId && savedMaps.length > 0) {
+    if (state?.queryErfNumber) {
+      // Find the ERF by erfNumber
+      const fetchErfByNumber = async () => {
+        try {
+          const { collection, query, where, limit, getDocs } = await import('firebase/firestore');
+          const { db } = await import('@/lib/firebase');
+          const q = query(
+            collection(db, 'erfs'), 
+            where('erfNumber', '==', state.queryErfNumber),
+            limit(1)
+          );
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            const data = snap.docs[0].data() as ErfRecord;
+            setSelectedErf(data);
+            if (data.center) {
+              mapRef.current?.flyTo({
+                center: [data.center.lng, data.center.lat],
+                zoom: 17,
+                duration: 1500,
+                essential: true,
+              });
+            }
+            setDrawerOpen(true);
+          }
+        } catch (e) {
+          console.error("Failed to query ERF by number:", e);
+        }
+      };
+      fetchErfByNumber();
+    } else if (state?.savedMapId && savedMaps.length > 0) {
       const sm = savedMaps.find((m) => m.id === state.savedMapId);
       if (sm) {
         setViewState({
@@ -212,7 +374,9 @@ export const MapPage = () => {
           pitch: sm.viewport.pitch || 0,
           bearing: sm.viewport.bearing || 0,
         });
-        // TODO: Apply visible layers based on sm.visibleLayers
+        if (sm.visibleLayers && sm.visibleLayers.length > 0) {
+          setActiveLayers(sm.visibleLayers);
+        }
       }
     } else if (state?.focusErf) {
       setSelectedErf(state.focusErf);
@@ -265,15 +429,21 @@ export const MapPage = () => {
             draw.add({
               id: d.id,
               type: "Feature",
-              properties: { ...d.style, title: d.title },
+              properties: { 
+                user_stroke: d.style?.stroke,
+                user_strokeWidth: d.style?.strokeWidth,
+                user_fill: d.style?.fill,
+                user_fillOpacity: d.style?.fillOpacity,
+                user_title: d.title 
+              },
               geometry: d.geometry,
             });
           } else {
             // Update existing feature properties
-            draw.setFeatureProperty(d.id, "title", d.title);
+            draw.setFeatureProperty(d.id, "user_title", d.title);
             if (d.style) {
               Object.entries(d.style).forEach(([k, v]) => {
-                draw.setFeatureProperty(d.id, k, v);
+                draw.setFeatureProperty(d.id, `user_${k}`, v);
               });
             }
           }
@@ -319,6 +489,9 @@ export const MapPage = () => {
       case "polygon":
         drawRef.current.changeMode("draw_polygon");
         break;
+      case "square":
+        drawRef.current.changeMode("draw_rectangle");
+        break;
     }
   };
 
@@ -337,7 +510,13 @@ export const MapPage = () => {
     drawRef.current?.add({
       ...feature,
       id: newDrawingId,
-      properties: { ...DEFAULT_STYLE, title: "New Drawing" },
+      properties: { 
+        user_stroke: DEFAULT_STYLE.stroke,
+        user_strokeWidth: DEFAULT_STYLE.strokeWidth,
+        user_fill: DEFAULT_STYLE.fill,
+        user_fillOpacity: DEFAULT_STYLE.fillOpacity,
+        user_title: "New Drawing" 
+      },
     });
     setDrawMode("select");
   };
@@ -358,7 +537,12 @@ export const MapPage = () => {
       setSelectedDrawingId(feature.id as string);
       const d = drawings.find((draw) => draw.id === feature.id);
       if (d) {
-        setEditingDrawing({ title: d.title, style: d.style });
+        setEditingDrawing({ 
+          title: d.title, 
+          style: d.style, 
+          projectId: d.projectId || null,
+          imageUrl: d.imageUrl || null
+        });
       }
     } else {
       setSelectedDrawingId(null);
@@ -383,29 +567,38 @@ export const MapPage = () => {
       await updateDrawing(selectedDrawingId, {
         title: editingDrawing.title,
         style: editingDrawing.style,
+        projectId: editingDrawing.projectId,
+        imageUrl: editingDrawing.imageUrl,
       });
       // Update properties in MapboxDraw for immediate visual feedback
       drawRef.current?.setFeatureProperty(
         selectedDrawingId,
-        "title",
+        "user_title",
         editingDrawing.title,
       );
       Object.entries(editingDrawing.style).forEach(([k, v]) => {
-        drawRef.current?.setFeatureProperty(selectedDrawingId, k, v);
+        drawRef.current?.setFeatureProperty(selectedDrawingId, `user_${k}`, v);
       });
       setShowStyleEditor(false);
     }
   };
 
   const handleSaveAnnotation = async (data: any) => {
-    if (selectedDrawingId) {
+    if (selectedDrawingId || selectedErf) {
       if (editingNote) {
         await updateAnnotation(editingNote.id, data);
       } else {
+        const targetType = selectedDrawingId ? "drawing" : "parcel";
+        const targetId = selectedDrawingId || selectedErf?.id || "";
+        const geometry = selectedDrawingId 
+          ? drawRef.current?.get(selectedDrawingId)?.geometry 
+          : selectedErf?.geometry;
+
         await createAnnotation({
           ...data,
-          targetType: "drawing",
-          targetId: selectedDrawingId,
+          targetType,
+          targetId,
+          geometry: geometry || null
         });
       }
       setShowAnnotationEditor(false);
@@ -415,21 +608,76 @@ export const MapPage = () => {
 
   const drawingAnnotations = annotations.filter(a => a.targetId === selectedDrawingId && a.targetType === 'drawing');
 
-  const handleSelectErfFromSearch = async (erf: ErfRecord) => {
+  const handleSearchResultSelect = async (result: any) => {
     try {
-      setIsFetchingFeature(true);
-      // Fetch full details
-      const fullErf = await fetchErfDetails(erf.id);
-      if (fullErf) {
-        setSelectedErf(fullErf);
+      if (result.type === 'erf') {
+        const erf = result.data;
+        setIsFetchingFeature(true);
+        // Fetch full details
+        let targetErf = await fetchErfDetails(erf.id);
+        
+        // If fetch fails (e.g. it's a geocoded address without a DB record), use the basic record
+        if (!targetErf) {
+           targetErf = erf;
+        }
+        
+        if (targetErf) {
+          setSelectedErf(targetErf);
+          if (mapRef.current) {
+            mapRef.current.flyTo({
+              center: [targetErf.center.lng, targetErf.center.lat],
+              zoom: 18,
+              duration: 1000
+            });
+          }
+          setDrawerOpen(true);
+        }
+      } else if (result.type === 'drawing') {
+        const drawing = result.data;
+        let center: [number, number] = [18.4241, -33.9249];
+        const geom = typeof drawing.geometry === 'string' ? JSON.parse(drawing.geometry) : drawing.geometry;
+        
+        if (drawing.geometryType === "Point") {
+          center = geom.coordinates;
+        } else {
+          const centroid = turf.centroid(geom as any);
+          center = centroid.geometry.coordinates as [number, number];
+        }
+
         if (mapRef.current) {
           mapRef.current.flyTo({
-            center: [fullErf.center.lng, fullErf.center.lat],
-            zoom: 18,
-            duration: 1000
+            center,
+            zoom: 17,
+            duration: 1500,
+            essential: true,
           });
         }
-        setDrawerOpen(true);
+        
+        // Ensure layer is visible
+        if (!activeLayers.includes('user_drawings')) {
+          setActiveLayers(prev => [...prev, 'user_drawings']);
+        }
+        
+        // Select the drawing
+        setSelectedDrawingId(drawing.id);
+        setEditingDrawing({
+          title: drawing.title,
+          style: drawing.style,
+          projectId: drawing.projectId || null,
+          imageUrl: drawing.imageUrl || null
+        });
+        setShowStyleEditor(true);
+      } else if (result.type === 'annotation') {
+        const annotation = result.data;
+        // Search results for annotations should probably zoom to the target
+        if (annotation.targetType === 'drawing') {
+           const targetDrawing = drawings.find(d => d.id === annotation.targetId);
+           if (targetDrawing) {
+             handleSearchResultSelect({ type: 'drawing', data: targetDrawing });
+             setEditingNote(annotation);
+             setShowAnnotationEditor(true);
+           }
+        }
       }
     } catch (e) {
       console.error(e);
@@ -463,6 +711,39 @@ export const MapPage = () => {
     }
   };
 
+  const { createBookmark } = useBookmarks();
+
+  const handleBookmarkFeature = async () => {
+    if (!popupInfo) return;
+    try {
+      await createBookmark({
+        label: popupInfo.feature.properties?.label || popupInfo.feature.properties?.NAME || `Feature in ${popupInfo.layerId}`,
+        type: 'feature',
+        projectId: null,
+        featureRef: popupInfo.feature,
+        sourceRefs: [popupInfo.layerId],
+        notes: `Bookmarked from map view: ${popupInfo.layerId}`
+      });
+      window.alert("Feature bookmarked successfully.");
+    } catch (e) {
+      window.alert("Failed to bookmark feature.");
+    }
+  };
+
+  const handleAddParcelAnnotation = async (data: any) => {
+    if (selectedErf) {
+      await createAnnotation({
+        ...data,
+        targetType: "map",
+        targetId: selectedErf.id,
+        projectId: data.projectId || undefined
+      });
+      setShowAnnotationEditor(false);
+      setEditingNote(null);
+      window.alert("Private annotation added to parcel.");
+    }
+  };
+
   return (
     <div className="absolute inset-0 flex flex-col bg-surface-50 overflow-hidden">
       <div className="flex-1 flex overflow-hidden relative">
@@ -491,6 +772,8 @@ export const MapPage = () => {
                 setBaseMap={setBaseMap}
                 showHillshade={showHillshade}
                 setShowHillshade={setShowHillshade}
+                showProjectPulse={showProjectPulse}
+                setShowProjectPulse={setShowProjectPulse}
                 historicalYear={historicalYear}
                 setHistoricalYear={setHistoricalYear}
                 layerOpacities={layerOpacities}
@@ -534,40 +817,71 @@ export const MapPage = () => {
                 // Include dynamic layer ids AND exact layer ids defined in sources
                 [
                   ...activeLayers.map(id => `layer-${id}`),
+                  ...activeLayers.map(id => `layer-${id}-fill`),
+                  ...activeLayers.map(id => `layer-${id}-line`),
+                  ...activeLayers.map(id => `layer-${id}-circle`),
+                  ...activeLayers.map(id => `layer-${id}-clusters`),
+                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
                   ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id))
+                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+                  "drawing-annotation-images"
                 ]
               }
               onClick={async (evt) => {
-                if (drawMode !== "select") return;
+                if (drawMode === "radius") {
+                  const { lng, lat } = evt.lngLat;
+                  setAnalysisCenter([lng, lat]);
+                  setIsAnalyzing(true);
+                  
+                  // Generate buffer for visual
+                  const buffer = getBufferPolygon([lng, lat], analysisRadius);
+                  setRadiusBuffer(buffer);
 
-                if (osintPending) {
-                   const reason = window.prompt("Reason for verification/override:");
-                   if (reason) {
-                      const fId = osintPending.feature.properties.OBJECTID || osintPending.feature.properties.id;
-                      try {
-                        await saveVerification(
-                          osintPending.layerId.replace('layer-', ''), 
-                          fId.toString(), 
-                          osintPending.feature.geometry.coordinates, 
-                          [evt.lngLat.lng, evt.lngLat.lat], 
-                          reason
-                        );
-                        window.alert('Location verified & overridden successfully.');
-                      } catch(e) {
-                        window.alert('Failed to save verified location: ' + String(e));
-                      }
-                   }
-                   setOsintPending(null);
-                   return;
+                  // Perform query after short delay to simulate "thinking" and allow state to settle
+                  setTimeout(() => {
+                    const map = mapRef.current?.getMap();
+                    if (map) {
+                      const features = map.queryRenderedFeatures();
+                      const results = queryNearbyFeatures([lng, lat], analysisRadius, features);
+                      setRadiusResults(results);
+                    }
+                    setIsAnalyzing(false);
+                  }, 800);
+                  
+                  // Keep select mode active so toolbar highlights it, or stay in radius?
+                  // Usually user might want to click multiple times.
+                  return;
                 }
+
+                if (drawMode !== "select") return;
 
                 // Handle clicks on interactive vector layers
                 let clickedMapFeature: any = null;
                 if (evt.features && evt.features.length > 0) {
                   const feature = evt.features[0];
+
+                  // Handle drawing annotation image clicks
+                  if (feature.layer.id === 'drawing-annotation-images') {
+                    setPopupInfo({
+                      lngLat: [evt.lngLat.lng, evt.lngLat.lat],
+                      feature: feature,
+                      layerId: 'drawing-annotation'
+                    });
+                    return;
+                  }
+
                   // If it's a cadastre or zoning layer, fetch granular parcel data via RightDetailDrawer logic
-                  if (feature.layer.id === 'layer-wcgp-cadastre-vector' || feature.layer.id === 'layer-wcgp-zoning-vector') {
+                  const layerId = feature.layer.id;
+                  const isParcelLayer = [
+                    'wcgp-cadastre',
+                    'wcgp-cadastre-vector',
+                    'wcgp-zoning-vector',
+                    'erf_boundaries',
+                    'general_plans',
+                    'zoning_dms'
+                  ].some(id => layerId.includes(id));
+
+                  if (isParcelLayer) {
                      clickedMapFeature = feature;
                   } else {
                     // If it's one of our other defined interactive layers (schools, clinics), show popup
@@ -586,38 +900,52 @@ export const MapPage = () => {
                 const { lng, lat } = evt.lngLat;
                 try {
                   setIsFetchingFeature(true);
+                  // Attempt to fetch live data from CCT API, fallback to map feature attributes if offline/unavailable
                   const liveFeature = await getLiveErfRecord(lng, lat, clickedMapFeature);
                   if (liveFeature) {
                     setSelectedErf(liveFeature);
                     setDrawerOpen(true);
                   } else {
-              // Graceful fallback: Show standard location context but indicate source is offline
-              setSelectedErf({
-                id: `loc-${lat.toFixed(4)}-${lng.toFixed(4)}`,
-                objectId: 0,
-                erfNumber: "Not available from source",
-                allotmentArea: "Not available from source",
-                address: null,
-                center: { lat, lng },
-                status: "offline",
-                zoning: "Not available from source",
-                zoningCategory: "Unknown",
-                geometry: {
-                  type: "Point",
-                  coordinates: [lng, lat],
-                },
-                properties: {}
-              } as any);
-              setDrawerOpen(true);
-            }
-          } catch (e) {
-            console.error(e);
-            setSelectedErf(null);
-            setDrawerOpen(false);
-          } finally {
-            setIsFetchingFeature(false);
-          }
-        }}
+                    // Final fallback if even the mapper fails to return anything
+                    let address = null;
+                    let allotmentArea = "Not available from source";
+                    try {
+                       const { reverseGeocode } = await import('@/services/geocodingService');
+                       const geocodeResult = await reverseGeocode(lat, lng);
+                       if (geocodeResult) {
+                         address = geocodeResult.formattedAddress || geocodeResult.address || null;
+                         allotmentArea = "Location Identified";
+                       }
+                    } catch (e) {
+                      console.warn("Reverse geocode failed on map click", e);
+                    }
+                    
+                    setSelectedErf({
+                      id: `loc-${lat.toFixed(4)}-${lng.toFixed(4)}`,
+                      objectId: 0,
+                      erfNumber: address ? "Address Match" : "Not available from source",
+                      allotmentArea: allotmentArea,
+                      address: address,
+                      center: { lat, lng },
+                      status: address ? "geocode" : "offline",
+                      zoning: "Not available from source",
+                      zoningCategory: "Unknown",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [lng, lat],
+                      },
+                      properties: {}
+                    } as any);
+                    setDrawerOpen(true);
+                  }
+                } catch (e) {
+                  console.error("Error handling map click selection:", e);
+                  setSelectedErf(null);
+                  setDrawerOpen(false);
+                } finally {
+                  setIsFetchingFeature(false);
+                }
+              }}
         onError={(e) => {
           if (e.error?.message?.includes('openaerialmap.org') || typeof e.error?.message === 'string' && e.error.message.includes('tiles.openaerialmap.org')) {
              if (oamHealth !== 'offline') {
@@ -679,11 +1007,129 @@ export const MapPage = () => {
         )}
         
         <SourceManager 
-           sources={ALL_SOURCES} 
+           sources={[...ALL_SOURCES, ...customSources]} 
            activeLayerIds={[...activeLayers, ...eeActiveLayers]} 
            layerOpacities={layerOpacities}
         />
+
+        {/* Dynamic Custom Sources (e.g. from URL) */}
+        {customSources.filter(s => s.type === 'geojson').map(source => (
+          <Source key={source.id} id={source.id} type="geojson" data={source.url}>
+             {activeLayers.includes(source.id) && (
+               <>
+                 <Layer 
+                   id={`${source.id}-fill`} 
+                   type="fill" 
+                   filter={["==", "$type", "Polygon"]}
+                   paint={{ "fill-color": "#4f46e5", "fill-opacity": 0.3 * (layerOpacities[source.id] ?? 1) }} 
+                 />
+                 <Layer 
+                   id={`${source.id}-line`} 
+                   type="line" 
+                   filter={["any", ["==", "$type", "Polygon"], ["==", "$type", "LineString"]]}
+                   paint={{ "line-color": "#4f46e5", "line-width": 2, "line-opacity": (layerOpacities[source.id] ?? 1) }} 
+                 />
+                 <Layer 
+                   id={`${source.id}-circle`} 
+                   type="circle" 
+                   filter={["==", "$type", "Point"]}
+                   paint={{ "circle-radius": 5, "circle-color": "#4f46e5", "circle-opacity": (layerOpacities[source.id] ?? 1) }} 
+                 />
+               </>
+             )}
+          </Source>
+        ))}
+
+        <ProjectPulseLayer visible={showProjectPulse} />
         
+        {/* Dynamic Property Price Heatmap Layer */}
+        {showPriceHeatmap && (
+          <Source id="price-heatmap-source" type="vector" tiles={['/api/tiles/properties/{z}/{x}/{y}.pbf']} maxzoom={14}>
+             <Layer 
+               id="price-heatmap-layer"
+               type="heatmap"
+               source-layer="properties"
+               paint={{
+                 'heatmap-weight': [
+                   'interpolate',
+                   ['linear'],
+                   ['get', 'valuation'],
+                   0, 0,
+                   // Cap at 10 million for weight scale
+                   10000000, 1
+                 ],
+                 'heatmap-intensity': [
+                   'interpolate',
+                   ['linear'],
+                   ['zoom'],
+                   0, 1,
+                   15, 3
+                 ],
+                 'heatmap-color': [
+                   'interpolate',
+                   ['linear'],
+                   ['heatmap-density'],
+                   0, 'rgba(33,102,172,0)',
+                   0.2, 'rgb(103,169,207)',
+                   0.4, 'rgb(209,229,240)',
+                   0.6, 'rgb(253,219,199)',
+                   0.8, 'rgb(239,138,98)',
+                   1, 'rgb(178,24,43)'
+                 ],
+                 'heatmap-radius': [
+                   'interpolate',
+                   ['linear'],
+                   ['zoom'],
+                   0, 4,
+                   15, 25
+                 ],
+                 'heatmap-opacity': 0.8
+               } as any}
+             />
+             <Layer
+                id="price-point-layer"
+                type="circle"
+                source-layer="properties"
+                minzoom={14}
+                paint={{
+                  'circle-radius': 5,
+                  'circle-color': [
+                    'step',
+                    ['get', 'valuation'],
+                    '#3b82f6', // blue for low
+                    2000000, '#10b981', // green 
+                    5000000, '#f59e0b', // orange
+                    10000000, '#ef4444' // red for high
+                  ],
+                  'circle-stroke-width': 1,
+                  'circle-stroke-color': '#fff'
+                } as any}
+             />
+          </Source>
+        )}
+        
+              {radiusBuffer && (
+                <Source id="radius-buffer" type="geojson" data={radiusBuffer}>
+                  <Layer
+                    id="radius-buffer-fill"
+                    type="fill"
+                    paint={{
+                      "fill-color": "#6366f1", // indigo-500
+                      "fill-opacity": 0.1,
+                    }}
+                  />
+                  <Layer
+                    id="radius-buffer-line"
+                    type="line"
+                    paint={{
+                      "line-color": "#6366f1",
+                      "line-width": 2,
+                      "line-dasharray": [4, 4],
+                    }}
+                  />
+                </Source>
+              )}
+
               <DrawControl
                 ref={drawRef}
                 onCreate={onDrawCreate}
@@ -797,19 +1243,49 @@ export const MapPage = () => {
               {activeLayers.includes("imported_geojson") && importedLayers.map(layer => {
                 const data = layer.geojson || (layer.features ? { type: "FeatureCollection", features: layer.features } : null);
                 if (!data) return null;
+
+                // Build paint expressions based on styleRules
+                // Expected styleRules: array of { property, operator, value, color }
+                let fillColor: any = "#4f46e5";
+                let lineColor: any = "#4338ca";
+                let circleColor: any = "#4f46e5";
+
+                if (layer.styleRules && layer.styleRules.length > 0) {
+                   const caseExpr: any[] = ["case"];
+                   layer.styleRules.forEach((rule: any) => {
+                     // Support various simple operators
+                     if (rule.operator === '==') {
+                       caseExpr.push(["==", ["get", rule.property], rule.value], rule.color);
+                     } else if (rule.operator === '!=') {
+                       caseExpr.push(["!=", ["get", rule.property], rule.value], rule.color);
+                     } else if (rule.operator === '>') {
+                       caseExpr.push([">", ["get", rule.property], Number(rule.value)], rule.color);
+                     } else if (rule.operator === '<') {
+                       caseExpr.push(["<", ["get", rule.property], Number(rule.value)], rule.color);
+                     } else {
+                       // default to match
+                       caseExpr.push(["==", ["get", rule.property], rule.value], rule.color);
+                     }
+                   });
+                   caseExpr.push("#4f46e5"); // fallback
+                   fillColor = caseExpr;
+                   lineColor = caseExpr;
+                   circleColor = caseExpr;
+                }
+
                 return (
                   <Source
                     key={`imported-${layer.id}`}
                     id={`imported-src-${layer.id}`}
                     type="geojson"
-                    data={data}
+                    data={data as any}
                   >
                     <Layer
                       id={`imported-fill-${layer.id}`}
                       type="fill"
                       filter={["==", "$type", "Polygon"]}
                       paint={{
-                        "fill-color": "#4f46e5",
+                        "fill-color": fillColor,
                         "fill-opacity": 0.3,
                       }}
                     />
@@ -818,7 +1294,7 @@ export const MapPage = () => {
                       type="line"
                       filter={["any", ["==", "$type", "Polygon"], ["==", "$type", "LineString"]]}
                       paint={{
-                        "line-color": "#4338ca",
+                        "line-color": lineColor,
                         "line-width": 2,
                       }}
                     />
@@ -828,7 +1304,7 @@ export const MapPage = () => {
                       filter={["==", "$type", "Point"]}
                       paint={{
                         "circle-radius": 5,
-                        "circle-color": "#4f46e5",
+                        "circle-color": circleColor,
                         "circle-stroke-width": 2,
                         "circle-stroke-color": "#ffffff"
                       }}
@@ -837,75 +1313,204 @@ export const MapPage = () => {
                 );
               })}
 
+              <Source id="map-annotations" type="geojson" data={{
+                type: 'FeatureCollection',
+                features: annotations.filter(a => a.geometry).map(a => ({
+                   type: 'Feature',
+                   id: a.id,
+                   geometry: a.geometry,
+                   properties: {
+                     ...a.style,
+                     title: a.title,
+                     id: a.id
+                   }
+                }))
+              } as any}>
+                 <Layer
+                   id="annotation-fill"
+                   type="fill"
+                   filter={["==", "$type", "Polygon"]}
+                   paint={{
+                      "fill-color": ["coalesce", ["get", "fill"], "#e11d48"],
+                      "fill-opacity": ["coalesce", ["get", "fillOpacity"], 0.1]
+                   } as any}
+                 />
+                 <Layer
+                   id="annotation-line"
+                   type="line"
+                   filter={["any", ["==", "$type", "Polygon"], ["==", "$type", "LineString"]]}
+                   paint={{
+                      "line-color": ["coalesce", ["get", "stroke"], "#e11d48"],
+                      "line-width": ["coalesce", ["get", "strokeWidth"], 2]
+                   } as any}
+                 />
+                 <Layer
+                   id="annotation-label"
+                   type="symbol"
+                   layout={{
+                      "text-field": ["get", "title"],
+                      "text-size": 12,
+                      "text-anchor": "center",
+                      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"]
+                   } as any}
+                   paint={{
+                      "text-color": ["coalesce", ["get", "stroke"], "#000"],
+                      "text-halo-color": "#ffffff",
+                      "text-halo-width": 1
+                   }}
+                 />
+              </Source>
+
+              <Source id="drawing-annotations" type="geojson" data={drawingAnnotationMarkers as any}>
+                <Layer
+                  id="drawing-annotation-images"
+                  type="symbol"
+                  layout={{
+                    "icon-image": "camera-15", // standard maplibre-gl icon if using a style that has it
+                    "icon-size": 1,
+                    "icon-allow-overlap": true,
+                  }}
+                  paint={{
+                    "icon-color": "#4f46e5",
+                    "icon-halo-color": "#ffffff",
+                    "icon-halo-width": 1,
+                  }}
+                />
+              </Source>
+
               {popupInfo && (
                 <FeaturePopup
                   popupInfo={popupInfo}
                   onClose={() => setPopupInfo(null)}
                   onBookmark={() => setBookmarkDialogOpen(true)}
                   onVerify={() => {
-                    setOsintDrawerInfo({layerId: popupInfo.layerId, feature: popupInfo.feature});
+                    setOsintPending({layerId: popupInfo.layerId, feature: popupInfo.feature});
                     setPopupInfo(null);
                   }}
                 />
               )}
             </Map>
+            
+            <OsintVerificationModal
+              isOpen={!!osintPending}
+              onClose={() => setOsintPending(null)}
+              featureInfo={osintPending}
+              onVerifyComplete={() => {
+                 setOsintPending(null);
+                 setOsintDrawerInfo(null);
+              }}
+            />
 
-            {osintPending && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="bg-indigo-600 text-white font-medium shadow-lg rounded-full px-4 py-2 text-sm flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Click on map to set corrected location for {osintPending.layerId.replace("layer-", "")} feature.
-                  <button onClick={() => setOsintPending(null)} className="pointer-events-auto ml-2 underline hover:text-indigo-200">Cancel</button>
+            {/* Mobile-Friendly Stackable Top UI Overlay */}
+            <div className="absolute top-4 inset-x-4 z-30 pointer-events-none">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative">
+                
+                {/* Top Bar: Left (Toggle) + Right (Mobile Tools) */}
+                <div className="flex justify-between items-start w-full md:w-auto md:flex-none">
+                  <div className="pointer-events-auto shrink-0 z-10">
+                    <button
+                      className="bg-white/95 backdrop-blur-md text-surface-700 hover:text-rose-600 border border-surface-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] h-12 w-12 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                      onClick={() => setLayerPanelOpen(open => !open)}
+                      title="Toggle Layers Panel"
+                    >
+                      <Layers className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Mobile Right Tools (hidden on md) */}
+                  <div className="pointer-events-none flex md:hidden flex-col gap-2.5 items-end z-10 relative">
+                    <div className="pointer-events-auto">
+                      <DrawToolbar
+                        activeMode={drawMode}
+                        onModeChange={handleModeChange}
+                        isSelected={!!selectedDrawingId}
+                        onDelete={handleDeleteDrawing}
+                        onProperties={() => setShowStyleEditor(!showStyleEditor)}
+                        onAnnotate={() =>
+                          setShowAnnotationEditor(!showAnnotationEditor)
+                        }
+                        hasSelectedParcel={!!selectedErf}
+                        showBuffer={showBuffer}
+                        onToggleBuffer={() => setShowBuffer(!showBuffer)}
+                        onBookmarkClick={() => setBookmarkDialogOpen(true)}
+                        onSaveMapClick={() => setSaveMapDialogOpen(true)}
+                      />
+                    </div>
+                    <button 
+                      onClick={() => setShowPriceHeatmap(!showPriceHeatmap)}
+                      className={cn("bg-white text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto",
+                        showPriceHeatmap ? 'border border-amber-500 text-amber-700 bg-amber-50 shadow-amber-500/20' : 'border border-surface-200 text-surface-600 hover:bg-surface-50 hover:text-surface-900'
+                      )}
+                    >
+                      Price Heatmap
+                    </button>
+                    <button 
+                      onClick={() => setShowMarketChat(!showMarketChat)}
+                      className={cn("bg-white text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto flex items-center gap-1.5",
+                        showMarketChat ? 'border border-indigo-500 text-indigo-700 bg-indigo-50 shadow-indigo-500/20' : 'border border-surface-200 hover:bg-surface-50 text-indigo-600 hover:text-indigo-800'
+                      )}
+                    >
+                      AI Market Chat
+                    </button>
+                  </div>
+                </div>
+
+                {/* Center Column: Search & AI Command (Absolute on md, stacked on mobile) */}
+                <div className="pointer-events-none flex flex-col gap-3 w-full md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-2xl px-0 z-0 mt-2 md:mt-0">
+                  <div className="flex items-center gap-3 w-full pointer-events-auto">
+                    <div className="flex-1">
+                      <SearchBar onSelect={handleSearchResultSelect} />
+                    </div>
+                    <button 
+                      onClick={() => setFilterPanelOpen(true)}
+                      className="bg-white border border-surface-200 shadow-sm rounded-lg p-2.5 text-surface-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors shrink-0"
+                      title="Advanced Filters"
+                    >
+                      <Filter className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="pointer-events-auto">
+                    <SpatialCommandBar onFiltersApplied={handleSpatialFiltersApplied} />
+                  </div>
+                </div>
+
+                {/* Desktop Right Tools (hidden on sm, visible on md) */}
+                <div className="pointer-events-none hidden md:flex flex-col gap-2.5 items-end z-10 absolute right-0 top-0">
+                  <div className="pointer-events-auto">
+                    <DrawToolbar
+                      activeMode={drawMode}
+                      onModeChange={handleModeChange}
+                      isSelected={!!selectedDrawingId}
+                      onDelete={handleDeleteDrawing}
+                      onProperties={() => setShowStyleEditor(!showStyleEditor)}
+                      onAnnotate={() =>
+                        setShowAnnotationEditor(!showAnnotationEditor)
+                      }
+                      hasSelectedParcel={!!selectedErf}
+                      showBuffer={showBuffer}
+                      onToggleBuffer={() => setShowBuffer(!showBuffer)}
+                      onBookmarkClick={() => setBookmarkDialogOpen(true)}
+                      onSaveMapClick={() => setSaveMapDialogOpen(true)}
+                    />
+                  </div>
+                  <button 
+                    onClick={() => setShowPriceHeatmap(!showPriceHeatmap)}
+                    className={cn("bg-white text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto",
+                      showPriceHeatmap ? 'border border-amber-500 text-amber-700 bg-amber-50 shadow-amber-500/20' : 'border border-surface-200 text-surface-600 hover:bg-surface-50 hover:text-surface-900'
+                    )}
+                  >
+                    Price Heatmap
+                  </button>
+                  <button 
+                    onClick={() => setShowMarketChat(!showMarketChat)}
+                    className={cn("bg-white text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto flex items-center gap-1.5",
+                      showMarketChat ? 'border border-indigo-500 text-indigo-700 bg-indigo-50 shadow-indigo-500/20' : 'border border-surface-200 hover:bg-surface-50 text-indigo-600 hover:text-indigo-800'
+                    )}
+                  >
+                    AI Market Chat
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* Layout Toggle */}
-            <div className="absolute top-4 left-4 z-20 pointer-events-auto">
-              <button
-                className="bg-white/95 backdrop-blur-md text-surface-700 hover:text-rose-600 border border-surface-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] h-12 w-12 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                onClick={() => setLayerPanelOpen(open => !open)}
-                title="Toggle Layers Panel"
-              >
-                <Layers className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Drawing Toolbar on Right */}
-            <div className="absolute top-4 right-4 z-20 flex flex-col gap-2.5 items-end pointer-events-none">
-              <div className="pointer-events-auto">
-                <DrawToolbar
-                  activeMode={drawMode}
-                  onModeChange={handleModeChange}
-                  isSelected={!!selectedDrawingId}
-                  onDelete={handleDeleteDrawing}
-                  onProperties={() => setShowStyleEditor(!showStyleEditor)}
-                  onAnnotate={() =>
-                    setShowAnnotationEditor(!showAnnotationEditor)
-                  }
-                  hasSelectedParcel={!!selectedErf}
-                  showBuffer={showBuffer}
-                  onToggleBuffer={() => setShowBuffer(!showBuffer)}
-                  onBookmarkClick={() => setBookmarkDialogOpen(true)}
-                  onSaveMapClick={() => setSaveMapDialogOpen(true)}
-                />
-              </div>
-              <button 
-                onClick={() => setShowPriceHeatmap(!showPriceHeatmap)}
-                className={cn("bg-white border text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto",
-                  showPriceHeatmap ? 'border-amber-500 text-amber-700 bg-amber-50 shadow-amber-500/20' : 'border-surface-200 text-surface-600 hover:bg-surface-50 hover:text-surface-900'
-                )}
-              >
-                Price Heatmap
-              </button>
-              <button 
-                onClick={() => setShowMarketChat(!showMarketChat)}
-                className={cn("bg-white border text-[10px] uppercase font-bold tracking-widest px-4 py-2.5 rounded-xl shadow-md transition-all pointer-events-auto flex items-center gap-1.5",
-                  showMarketChat ? 'border-indigo-500 text-indigo-700 bg-indigo-50 shadow-indigo-500/20' : 'border-surface-200 hover:bg-surface-50 text-indigo-600 hover:text-indigo-800'
-                )}
-              >
-                AI Market Chat
-              </button>
             </div>
 
             {/* Market Chat Panel Overlay */}
@@ -920,6 +1525,14 @@ export const MapPage = () => {
                      activeLayers: activeLayers,
                      message: "Aggregated stats for current visible bounds based on active map layers."
                   }}
+                  getVisibleFeatures={() => {
+                    const map = mapRef.current?.getMap();
+                    if (!map) return [];
+                    const features = map.queryRenderedFeatures();
+                    // Filter out basemap features and only keep our custom layers if possible
+                    // Or just pick those with properties and no mapbox/maptiler internal fields
+                    return features.map(f => f.properties || {}).filter(p => Object.keys(p).length > 2);
+                  }}
                 />
               </div>
             )}
@@ -932,11 +1545,19 @@ export const MapPage = () => {
                     <DrawingStyleEditor
                       title={editingDrawing.title}
                       style={editingDrawing.style}
+                      projectId={editingDrawing.projectId}
+                      imageUrl={editingDrawing.imageUrl}
                       onTitleChange={(t) =>
                         setEditingDrawing({ ...editingDrawing, title: t })
                       }
                       onStyleChange={(s) =>
                         setEditingDrawing({ ...editingDrawing, style: s })
+                      }
+                      onProjectChange={(pid) => 
+                        setEditingDrawing({ ...editingDrawing, projectId: pid })
+                      }
+                      onImageUrlChange={(url) =>
+                        setEditingDrawing({ ...editingDrawing, imageUrl: url })
                       }
                       onSave={handleSaveDrawingProps}
                       onClose={() => setShowStyleEditor(false)}
@@ -950,6 +1571,7 @@ export const MapPage = () => {
                       targetId={selectedDrawingId}
                       initialTitle={editingNote?.title}
                       initialBody={editingNote?.body}
+                      initialImageUrl={editingNote?.imageUrl}
                       projectId={editingNote?.projectId}
                       sourceRefs={editingNote?.sourceRefs}
                       onSave={handleSaveAnnotation}
@@ -1006,24 +1628,7 @@ export const MapPage = () => {
           </AnimatePresence>
         </div>
 
-        {/* Search Bar & AI Command Bar */}
-        <div className="absolute top-16 md:top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col gap-3 w-[calc(100%-2rem)] md:w-full md:max-w-2xl">
-           <div className="flex items-center gap-3 w-full pointer-events-auto">
-             <div className="flex-1">
-               <SearchBar onSelect={handleSelectErfFromSearch} />
-             </div>
-             <button 
-               onClick={() => setFilterPanelOpen(true)}
-               className="bg-white border border-surface-200 shadow-sm rounded-lg p-2.5 text-surface-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors shrink-0"
-               title="Advanced Filters"
-             >
-               <Filter className="w-5 h-5" />
-             </button>
-           </div>
-           <div className="pointer-events-auto">
-             <SpatialCommandBar onFiltersApplied={handleSpatialFiltersApplied} />
-           </div>
-        </div>
+
 
         {/* Floating Filter Panel Overlay */}
         <AnimatePresence>
@@ -1155,6 +1760,35 @@ export const MapPage = () => {
         viewport={viewState}
         visibleLayers={[]} // We aren't fully managing layer state yet
       />
+
+      {analysisCenter && radiusBuffer && (
+        <RadiusResultsPanel 
+          radius={analysisRadius}
+          center={analysisCenter}
+          results={radiusResults}
+          isLoading={isAnalyzing}
+          onRadiusChange={(newRadius) => {
+            setAnalysisRadius(newRadius);
+            const buffer = getBufferPolygon(analysisCenter, newRadius);
+            setRadiusBuffer(buffer);
+            setIsAnalyzing(true);
+            setTimeout(() => {
+              const map = mapRef.current?.getMap();
+              if (map) {
+                 const features = map.queryRenderedFeatures();
+                 const results = queryNearbyFeatures(analysisCenter, newRadius, features);
+                 setRadiusResults(results);
+              }
+              setIsAnalyzing(false);
+            }, 600);
+          }}
+          onClose={() => {
+            setRadiusBuffer(null);
+            setRadiusResults([]);
+            setAnalysisCenter(null);
+          }}
+        />
+      )}
 
       {/* Bottom Status Bar */}
       <ViewportStatusBar
