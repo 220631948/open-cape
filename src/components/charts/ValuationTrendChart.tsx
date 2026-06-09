@@ -8,7 +8,8 @@ export interface ValuationTrendChartProps {
   className?: string;
 }
 
-export const ValuationTrendChart: React.FC<ValuationTrendChartProps> = ({ data, className }) => {
+// Memoized to prevent expensive chart re-renders when parent components update but data remains unchanged
+export const ValuationTrendChart: React.FC<ValuationTrendChartProps> = React.memo(({ data, className }) => {
   if (!data || data.length < 2) {
     return (
       <div className={cn("flex items-center justify-center h-32 bg-surface-50 border border-surface-200 border-dashed rounded-lg text-surface-400 text-xs", className)}>
@@ -85,4 +86,4 @@ export const ValuationTrendChart: React.FC<ValuationTrendChartProps> = ({ data, 
       </div>
     </div>
   );
-};
+});
