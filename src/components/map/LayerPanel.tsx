@@ -76,7 +76,8 @@ const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, l
       <button
         onClick={() => onToggle(id)}
         title="Hide layer"
-        className={cn("shrink-0 p-1 rounded-sm transition-colors", layerInfo?.color || "text-surface-700")}
+        aria-label="Hide layer"
+        className={cn("shrink-0 p-1 rounded-sm transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none", layerInfo?.color || "text-surface-700")}
       >
         <Eye className="h-4 w-4" />
       </button>
@@ -286,8 +287,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 <button
                   onClick={() => onToggleLayer(layer.id)}
                   title={isActive ? "Hide layer" : "Show layer"}
+                  aria-label={isActive ? "Hide layer" : "Show layer"}
                   className={cn(
-                    "shrink-0 p-1 rounded-sm transition-colors",
+                    "shrink-0 p-1 rounded-sm transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none",
                     isActive
                       ? layer.color
                       : "text-surface-300 hover:text-surface-500",
@@ -418,7 +420,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
           {searchTerm && (
             <button 
               onClick={() => setSearchTerm("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-surface-100 rounded-full transition-colors"
+              aria-label="Clear layer search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-surface-100 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
               <X className="h-3 w-3 text-surface-400 hover:text-surface-600" />
             </button>
@@ -447,7 +450,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                        </div>
                        <button
                          onClick={() => setShowProjectPulse(!showProjectPulse)}
-                         className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
+                         aria-label="Toggle Spatial Project Pulse"
+                         className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none focus-visible:ring-offset-1", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
                        >
                          <div className={cn("w-3 h-3 rounded-full bg-white shadow-sm transition-transform", showProjectPulse ? "translate-x-4" : "translate-x-0")} />
                        </button>
@@ -541,7 +545,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                <span className="text-xs font-semibold text-surface-700">Terrain Hillshade</span>
                <button
                  onClick={() => setShowHillshade(!showHillshade)}
-                 className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", showHillshade ? "bg-rose-500" : "bg-surface-300")}
+                 aria-label="Toggle Terrain Hillshade"
+                 className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none focus-visible:ring-offset-1", showHillshade ? "bg-rose-500" : "bg-surface-300")}
                >
                  <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", showHillshade ? "translate-x-4" : "translate-x-0")} />
                </button>
@@ -552,7 +557,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                  <span className="text-xs font-semibold text-surface-700 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-blue-500" /> Historical Imagery (EE)</span>
                  <button
                    onClick={() => setHistoricalYear(historicalYear ? null : 2020)}
-                   className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", historicalYear ? "bg-rose-500" : "bg-surface-300")}
+                   aria-label="Toggle Historical Imagery"
+                   className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none focus-visible:ring-offset-1", historicalYear ? "bg-rose-500" : "bg-surface-300")}
                  >
                    <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", historicalYear ? "translate-x-4" : "translate-x-0")} />
                  </button>
