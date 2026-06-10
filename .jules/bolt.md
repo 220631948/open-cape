@@ -1,0 +1,3 @@
+## 2024-06-10 - Memoization of interactiveLayerIds in react-map-gl
+**Learning:** Arrays constructed dynamically inside the render method and passed directly to props (like `interactiveLayerIds` in `<Map>`) can cause unnecessary and potentially expensive re-renders or updates in mapping libraries (e.g., `react-map-gl`). The map configuration changes trigger heavy underlying Mapbox/Maplibre operations.
+**Action:** Always wrap dynamically generated array or object props for `react-map-gl` `Map` components in `useMemo` with proper dependencies, especially when arrays iterate over a growing list of layers.
