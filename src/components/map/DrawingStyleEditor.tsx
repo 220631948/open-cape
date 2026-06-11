@@ -113,7 +113,7 @@ export const DrawingStyleEditor: React.FC<DrawingStyleEditorProps> = ({
           <Palette className="h-4 w-4 text-indigo-500" />
           Drawing Properties
         </CardTitle>
-        <button onClick={onClose} className="p-1.5 hover:bg-surface-200 rounded-lg text-surface-400 hover:text-surface-900 transition-all">
+        <button onClick={onClose} aria-label="Close editor" className="p-1.5 hover:bg-surface-200 rounded-lg text-surface-400 hover:text-surface-900 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <X className="h-4 w-4" />
         </button>
       </CardHeader>

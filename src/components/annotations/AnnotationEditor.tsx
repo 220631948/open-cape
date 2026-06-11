@@ -86,7 +86,7 @@ export const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
             {initialTitle ? 'Edit Annotation' : 'New Annotation'}
           </CardTitle>
         </div>
-        <button onClick={onClose} className="text-surface-400 hover:text-surface-900 transition-colors">
+        <button onClick={onClose} aria-label="Close editor" className="text-surface-400 hover:text-surface-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-sm">
           <X className="h-4 w-4" />
         </button>
       </CardHeader>
