@@ -122,7 +122,7 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
         handleRecentSelect(recentSearches[selectedIndex]);
       } else if (listMode === 'results' && selectedIndex >= 0) {
         if (selectedIndex < suggestions.length) {
-          handleRecentSelect(suggestions[selectedIndex].text!);
+          handleRecentSelect(String(suggestions[selectedIndex].text));
         } else {
           handleSelect(derivedResults[selectedIndex - suggestions.length]);
         }
@@ -188,7 +188,11 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
                    <Clock className="w-4 h-4 text-surface-400" />
                    {term}
                  </div>
-                 <button onClick={(e) => clearRecent(e, term)} className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors">
+                 <button
+                   onClick={(e) => clearRecent(e, term)}
+                   className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors"
+                   aria-label={`Remove ${term} from recent searches`}
+                 >
                    <X className="w-3 h-3" />
                  </button>
                </li>
@@ -226,7 +230,7 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
                     role="option"
                     aria-selected={selectedIndex === idx}
                     className={cn("px-4 py-2 cursor-pointer flex items-center gap-3 transition-colors", selectedIndex === idx ? "bg-indigo-50" : "hover:bg-surface-50")}
-                    onClick={() => handleRecentSelect(suggestion.text!)}
+                    onClick={() => handleRecentSelect(String(suggestion.text))}
                     onMouseEnter={() => setSelectedIndex(idx)}
                   >
                     <Search className="w-4 h-4 text-surface-400 shrink-0" />
