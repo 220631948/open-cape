@@ -1,0 +1,3 @@
+## 2024-06-25 - React Component Re-renders on Key Press Navigation
+**Learning:** In components with keyboard navigation (like MapSearch), updating the `selectedIndex` state triggers a full component re-render. If there are heavy un-memoized derived state calculations (e.g., mapping and filtering over large arrays to create unique suggestion lists), this causes significant main thread blocking and input jank on every key press (ArrowUp/ArrowDown).
+**Action:** Always wrap heavy derived state computations in `useMemo` when a component contains rapidly updating interactive state (like hover indexes or keyboard navigation indexes) to ensure O(n) calculations don't run on O(1) state updates.
