@@ -221,6 +221,34 @@ export const MapPage = () => {
 
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
 
+  // ⚡ Bolt Optimization: Memoize interactiveLayerIds to prevent MapLibre event re-bindings on every render
+  const memoizedInteractiveLayerIds = useMemo(() => [
+    ...activeLayers.map(id => `layer-${id}`),
+    ...activeLayers.map(id => `layer-${id}-fill`),
+    ...activeLayers.map(id => `layer-${id}-line`),
+    ...activeLayers.map(id => `layer-${id}-circle`),
+    ...activeLayers.map(id => `layer-${id}-clusters`),
+    ...activeLayers.map(id => `layer-${id}-cluster-count`),
+    ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+      .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+    "drawing-annotation-images"
+  ], [activeLayers]);
+
+  // ⚡ Bolt Optimization: Memoize map annotations data to prevent expensive GeoJSON diffing
+  const memoizedAnnotationsData = useMemo(() => ({
+    type: 'FeatureCollection',
+    features: annotations.filter(a => a.geometry).map(a => ({
+       type: 'Feature',
+       id: a.id,
+       geometry: a.geometry,
+       properties: {
+         ...a.style,
+         title: a.title,
+         id: a.id
+       }
+    }))
+  } as any), [annotations]);
+
   // Keep MapboxDraw features on top of dynamic rasters/layers
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -803,31 +831,18 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
+              onLoad={useCallback(() => setIsMapLoading(false), [])}
+              onData={useCallback((e: any) => {
                 if (e.dataType === 'source' && e.isSourceLoaded) {
                   // Small delay to ensure smooth transition
                   setTimeout(() => setIsMapLoading(false), 300);
                 } else if (e.dataType === 'source') {
                   setIsMapLoading(true);
                 }
-              }}
+              }, [])}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
-              onClick={async (evt) => {
+              interactiveLayerIds={memoizedInteractiveLayerIds}
+              onClick={useCallback(async (evt: any) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
                   setAnalysisCenter([lng, lat]);
@@ -945,8 +960,19 @@ export const MapPage = () => {
                 } finally {
                   setIsFetchingFeature(false);
                 }
-              }}
-        onError={(e) => {
+              }, [
+                drawMode,
+                setAnalysisCenter,
+                setIsAnalyzing,
+                setRadiusBuffer,
+                analysisRadius,
+                setRadiusResults,
+                setPopupInfo,
+                setIsFetchingFeature,
+                setSelectedErf,
+                setDrawerOpen
+              ])}
+        onError={useCallback((e: any) => {
           if (e.error?.message?.includes('openaerialmap.org') || typeof e.error?.message === 'string' && e.error.message.includes('tiles.openaerialmap.org')) {
              if (oamHealth !== 'offline') {
                console.warn('OAM tile failure caught. Disabling layer automatically.');
@@ -956,7 +982,7 @@ export const MapPage = () => {
                setActiveLayers(prev => prev.filter(Id => Id !== 'openaerialmap'));
              }
           }
-        }}
+        }, [oamHealth, setOamHealth, setOamErrorMsg, setActiveLayers])}
         style={{ width: "100%", height: "100%" }}
       >
         {baseMap === 'satellite' && (
@@ -1313,19 +1339,7 @@ export const MapPage = () => {
                 );
               })}
 
-              <Source id="map-annotations" type="geojson" data={{
-                type: 'FeatureCollection',
-                features: annotations.filter(a => a.geometry).map(a => ({
-                   type: 'Feature',
-                   id: a.id,
-                   geometry: a.geometry,
-                   properties: {
-                     ...a.style,
-                     title: a.title,
-                     id: a.id
-                   }
-                }))
-              } as any}>
+              <Source id="map-annotations" type="geojson" data={memoizedAnnotationsData}>
                  <Layer
                    id="annotation-fill"
                    type="fill"
