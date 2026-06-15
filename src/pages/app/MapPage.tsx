@@ -221,6 +221,41 @@ export const MapPage = () => {
 
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
 
+  // Memoized handlers and props for map
+  const handleMapLoad = useCallback(() => {
+    setIsMapLoading(false);
+  }, []);
+
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
+  const memoizedInteractiveLayerIds = useMemo(() => {
+    return [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ];
+  }, [activeLayers]);
+
+  const memoizedCombinedSources = useMemo(() => {
+    return [...ALL_SOURCES, ...customSources];
+  }, [customSources]);
+
+  const memoizedCombinedActiveLayers = useMemo(() => {
+    return [...activeLayers, ...eeActiveLayers];
+  }, [activeLayers, eeActiveLayers]);
+
   // Keep MapboxDraw features on top of dynamic rasters/layers
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -803,30 +838,10 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onLoad={handleMapLoad}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={memoizedInteractiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
@@ -1007,15 +1022,16 @@ export const MapPage = () => {
         )}
         
         <SourceManager 
-           sources={[...ALL_SOURCES, ...customSources]} 
-           activeLayerIds={[...activeLayers, ...eeActiveLayers]} 
+           sources={memoizedCombinedSources}
+           activeLayerIds={memoizedCombinedActiveLayers}
            layerOpacities={layerOpacities}
         />
 
         {/* Dynamic Custom Sources (e.g. from URL) */}
         {customSources.filter(s => s.type === 'geojson').map(source => (
-          <Source key={source.id} id={source.id} type="geojson" data={source.url}>
-             {activeLayers.includes(source.id) && (
+          <React.Fragment key={source.id}>
+            <Source id={source.id} type="geojson" data={source.url}>
+               {activeLayers.includes(source.id) && (
                <>
                  <Layer 
                    id={`${source.id}-fill`} 
@@ -1038,6 +1054,7 @@ export const MapPage = () => {
                </>
              )}
           </Source>
+          </React.Fragment>
         ))}
 
         <ProjectPulseLayer visible={showProjectPulse} />
@@ -1274,12 +1291,12 @@ export const MapPage = () => {
                 }
 
                 return (
-                  <Source
-                    key={`imported-${layer.id}`}
-                    id={`imported-src-${layer.id}`}
-                    type="geojson"
-                    data={data as any}
-                  >
+                  <React.Fragment key={`imported-${layer.id}`}>
+                    <Source
+                      id={`imported-src-${layer.id}`}
+                      type="geojson"
+                      data={data as any}
+                    >
                     <Layer
                       id={`imported-fill-${layer.id}`}
                       type="fill"
@@ -1309,7 +1326,8 @@ export const MapPage = () => {
                         "circle-stroke-color": "#ffffff"
                       }}
                     />
-                  </Source>
+                    </Source>
+                  </React.Fragment>
                 );
               })}
 
