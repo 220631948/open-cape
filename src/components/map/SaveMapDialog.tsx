@@ -53,7 +53,7 @@ export const SaveMapDialog: React.FC<SaveMapDialogProps> = ({ isOpen, onClose, v
           <h2 className="text-lg font-semibold text-surface-900 flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-surface-400" /> Save Map View
           </h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8 -mr-2">
+          <Button aria-label="Close dialog" variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8 -mr-2">
              <X className="w-4 h-4" />
           </Button>
         </div>

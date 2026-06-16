@@ -68,7 +68,7 @@ export const AddBookmarkDialog: React.FC<AddBookmarkDialogProps> = ({ isOpen, on
              <Bookmark className="h-5 w-5 text-rose-500" />
              Save Bookmark
           </h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-surface-400 hover:text-surface-900 -mr-2">
+          <Button aria-label="Close dialog" variant="ghost" size="icon" onClick={onClose} className="text-surface-400 hover:text-surface-900 -mr-2">
             <X className="h-5 w-5" />
           </Button>
         </div>
