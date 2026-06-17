@@ -1,0 +1,3 @@
+## 2024-06-17 - React Map GL Referential Equality
+**Learning:** The `react-map-gl` Map component re-renders extremely frequently (on every frame during panning/zooming via `onMove`). Passing inline arrays (like `interactiveLayerIds`) or inline functions (like `onLoad`, `onData`, `onError`) causes expensive prop diffing and potential cascading re-renders in internal map layers, breaking React's ability to bail out of rendering.
+**Action:** Always memoize arrays passed to map components using `useMemo` and extract event handlers using `useCallback` to preserve referential equality across render cycles.

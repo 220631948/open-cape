@@ -468,6 +468,41 @@ export const MapPage = () => {
     setViewState(evt.viewState);
   }, []);
 
+  // ⚡ Bolt: Memoize event handlers to preserve referential equality
+  const handleMapLoad = useCallback(() => setIsMapLoading(false), []);
+
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
+  const handleMapError = useCallback((e: any) => {
+    if (e.error?.message?.includes('openaerialmap.org') || typeof e.error?.message === 'string' && e.error.message.includes('tiles.openaerialmap.org')) {
+       if (oamHealth !== 'offline') {
+         console.warn('OAM tile failure caught. Disabling layer automatically.');
+         setOamHealth('offline');
+         setOamErrorMsg('Warning: OAM tile failure caught. Disabling layer automatically. Local Aerial imagery temporarily unavailable. Try NASA GIBS or ESRI Satellite.');
+         setActiveLayers((prev: string[]) => prev.filter(Id => Id !== 'openaerialmap'));
+       }
+    }
+  }, [oamHealth]);
+
+  // ⚡ Bolt: Memoize interactive layer IDs to prevent array recreation on every render/pan
+  const interactiveLayerIds = useMemo(() => [
+    ...activeLayers.map((id: string) => `layer-${id}`),
+    ...activeLayers.map((id: string) => `layer-${id}-fill`),
+    ...activeLayers.map((id: string) => `layer-${id}-line`),
+    ...activeLayers.map((id: string) => `layer-${id}-circle`),
+    ...activeLayers.map((id: string) => `layer-${id}-clusters`),
+    ...activeLayers.map((id: string) => `layer-${id}-cluster-count`),
+    ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+      .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+    "drawing-annotation-images"
+  ], [activeLayers]);
+
   const handleModeChange = (mode: DrawMode) => {
     setDrawMode(mode);
     if (!drawRef.current) return;
@@ -803,30 +838,10 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onLoad={handleMapLoad}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
@@ -946,17 +961,7 @@ export const MapPage = () => {
                   setIsFetchingFeature(false);
                 }
               }}
-        onError={(e) => {
-          if (e.error?.message?.includes('openaerialmap.org') || typeof e.error?.message === 'string' && e.error.message.includes('tiles.openaerialmap.org')) {
-             if (oamHealth !== 'offline') {
-               console.warn('OAM tile failure caught. Disabling layer automatically.');
-               setOamHealth('offline');
-               setOamErrorMsg('Warning: OAM tile failure caught. Disabling layer automatically. Local Aerial imagery temporarily unavailable. Try NASA GIBS or ESRI Satellite.');
-               // Remove OAM from active layers so it stops fetching and spamming errors
-               setActiveLayers(prev => prev.filter(Id => Id !== 'openaerialmap'));
-             }
-          }
-        }}
+        onError={handleMapError}
         style={{ width: "100%", height: "100%" }}
       >
         {baseMap === 'satellite' && (
