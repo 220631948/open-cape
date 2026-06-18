@@ -51,7 +51,13 @@ export const AppLayout = () => {
     <div className="flex h-screen overflow-hidden bg-surface-50 text-surface-900">
       {/* Mobile drawer toggle */}
       <div className="md:hidden fixed z-50 bottom-4 right-4">
-        <Button size="icon" className="rounded-full shadow-lg" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <Button
+          size="icon"
+          className="rounded-full shadow-lg"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileMenuOpen}
+        >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
@@ -194,6 +200,7 @@ export const AppLayout = () => {
               size="icon" 
               className="text-surface-500 relative hidden sm:flex hover:bg-surface-100" 
               onClick={() => navigate('/app/watchlists')}
+              aria-label="View notifications"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
