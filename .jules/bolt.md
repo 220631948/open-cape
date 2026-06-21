@@ -1,0 +1,3 @@
+## 2024-06-21 - Memoizing react-map-gl interactiveLayerIds
+**Learning:** In `react-map-gl`, passing a dynamically generated array to props like `interactiveLayerIds` inline (e.g. `interactiveLayerIds={[...activeLayers.map(...)]}`) breaks referential equality on every React render. This causes the Map component to undergo costly unbinding and rebinding of interaction events on every single render (which happen frequently when UI state like toolbars or drawers change), significantly degrading performance.
+**Action:** Always memoize arrays or objects passed as props to the `Map` component using `useMemo` so that referential equality is preserved between renders unless the underlying dependencies (like `activeLayers`) actually change.
