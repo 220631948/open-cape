@@ -447,6 +447,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                        </div>
                        <button
                          onClick={() => setShowProjectPulse(!showProjectPulse)}
+                         role="switch"
+                         aria-checked={showProjectPulse}
+                         aria-label="Toggle Spatial Project Pulse"
                          className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
                        >
                          <div className={cn("w-3 h-3 rounded-full bg-white shadow-sm transition-transform", showProjectPulse ? "translate-x-4" : "translate-x-0")} />
@@ -501,6 +504,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             <div className="grid grid-cols-3 gap-2">
               <button 
                 onClick={() => setBaseMap('street')}
+                aria-pressed={baseMap === 'street'}
+                aria-label="Street Map"
                 className={cn("border-2 rounded-md overflow-hidden relative group", baseMap === 'street' ? "border-rose-500" : "border-transparent hover:border-surface-300")}
               >
                 <div className="aspect-video bg-surface-100 flex items-center justify-center bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
@@ -512,6 +517,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               </button>
               <button
                 onClick={() => setBaseMap('topo')}
+                aria-pressed={baseMap === 'topo'}
+                aria-label="Topographic Map"
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'topo' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Topographic map"
               >
@@ -525,6 +532,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               </button>
               <button
                 onClick={() => setBaseMap('satellite')}
+                aria-pressed={baseMap === 'satellite'}
+                aria-label="Satellite Map"
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'satellite' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Satellite imagery (context layer)"
               >
@@ -541,6 +550,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                <span className="text-xs font-semibold text-surface-700">Terrain Hillshade</span>
                <button
                  onClick={() => setShowHillshade(!showHillshade)}
+                 role="switch"
+                 aria-checked={showHillshade}
+                 aria-label="Toggle Terrain Hillshade"
                  className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", showHillshade ? "bg-rose-500" : "bg-surface-300")}
                >
                  <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", showHillshade ? "translate-x-4" : "translate-x-0")} />
@@ -552,6 +564,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                  <span className="text-xs font-semibold text-surface-700 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-blue-500" /> Historical Imagery (EE)</span>
                  <button
                    onClick={() => setHistoricalYear(historicalYear ? null : 2020)}
+                   role="switch"
+                   aria-checked={!!historicalYear}
+                   aria-label="Toggle Historical Imagery"
                    className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", historicalYear ? "bg-rose-500" : "bg-surface-300")}
                  >
                    <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", historicalYear ? "translate-x-4" : "translate-x-0")} />
