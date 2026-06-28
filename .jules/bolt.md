@@ -1,0 +1,3 @@
+## 2024-11-20 - Memoizing Map Props
+**Learning:** In react-map-gl (and mapbox/maplibre wrappers generally), preserving referential equality for props passed to the `<Map>` component is critical to performance. We found `interactiveLayerIds` being dynamically generated as a new array literal on every render. Because the array reference changes on every React render phase, the map instance is forced to re-evaluate properties, potentially re-binding event listeners or triggering map re-renders internally.
+**Action:** When passing arrays, objects, or functions into map component props (e.g. `interactiveLayerIds`, `onLoad`, `onData`), always wrap them in `useMemo` or `useCallback` unless they legitimately need to be recreated on every frame.
