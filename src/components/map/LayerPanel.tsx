@@ -446,6 +446,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                           <span className="text-[10px] font-bold text-rose-700 uppercase tracking-tight">Spatial Project Pulse</span>
                        </div>
                        <button
+                         role="switch"
+                         aria-checked={showProjectPulse}
+                         aria-label="Toggle Spatial Project Pulse"
                          onClick={() => setShowProjectPulse(!showProjectPulse)}
                          className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
                        >
@@ -500,6 +503,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             </p>
             <div className="grid grid-cols-3 gap-2">
               <button 
+                aria-pressed={baseMap === 'street'}
                 onClick={() => setBaseMap('street')}
                 className={cn("border-2 rounded-md overflow-hidden relative group", baseMap === 'street' ? "border-rose-500" : "border-transparent hover:border-surface-300")}
               >
@@ -511,6 +515,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 </div>
               </button>
               <button
+                aria-pressed={baseMap === 'topo'}
                 onClick={() => setBaseMap('topo')}
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'topo' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Topographic map"
@@ -524,6 +529,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 </div>
               </button>
               <button
+                aria-pressed={baseMap === 'satellite'}
                 onClick={() => setBaseMap('satellite')}
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'satellite' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Satellite imagery (context layer)"
@@ -540,6 +546,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             <div className="mt-3 flex items-center justify-between px-1">
                <span className="text-xs font-semibold text-surface-700">Terrain Hillshade</span>
                <button
+                 role="switch"
+                 aria-checked={showHillshade}
+                 aria-label="Toggle Terrain Hillshade"
                  onClick={() => setShowHillshade(!showHillshade)}
                  className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", showHillshade ? "bg-rose-500" : "bg-surface-300")}
                >
@@ -551,6 +560,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                <div className="flex items-center justify-between pointer-events-auto">
                  <span className="text-xs font-semibold text-surface-700 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-blue-500" /> Historical Imagery (EE)</span>
                  <button
+                   role="switch"
+                   aria-checked={!!historicalYear}
+                   aria-label="Toggle Historical Imagery"
                    onClick={() => setHistoricalYear(historicalYear ? null : 2020)}
                    className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", historicalYear ? "bg-rose-500" : "bg-surface-300")}
                  >

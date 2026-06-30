@@ -1,0 +1,3 @@
+## 2024-05-15 - Proper ARIA roles for custom toggle buttons and grouping
+**Learning:** Custom toggle buttons implemented with regular `div`s or `button`s in the map components often lack the semantic `role="switch"` and `aria-checked` attributes required for screen reader accessibility. Additionally, grouped map selection buttons miss `aria-pressed` to indicate their current state.
+**Action:** When implementing custom UI toggle buttons, always use `role="switch"` and `aria-checked` to ensure proper screen reader context. For grouped selection buttons (like map types), use `aria-pressed` to denote active states.
