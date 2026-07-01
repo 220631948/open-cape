@@ -238,7 +238,7 @@ export const ProfilePage = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                      <h3 className="font-semibold text-xl text-surface-900">{user?.displayName || 'Unknown User'}</h3>
-                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-surface-400 hover:text-surface-900" onClick={() => setIsEditing(true)}>
+                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-surface-400 hover:text-surface-900" onClick={() => setIsEditing(true)} aria-label="Edit profile" title="Edit profile">
                         <Edit2 className="h-3 w-3" />
                      </Button>
                   </div>
