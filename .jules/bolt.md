@@ -1,0 +1,3 @@
+## 2024-03-24 - React-Map-GL Prop Referential Equality
+**Learning:** In MapLibre/react-map-gl implementations, passing inline arrays or functions as props to the `<Map>` component (e.g., `interactiveLayerIds={[...]}` or `onClick={() => {}}`) breaks referential equality on every re-render. This forces the underlying MapLibre instance to unnecessarily rebind events and re-evaluate layer interactivity, causing significant frame drops during continuous state updates like panning or filtering.
+**Action:** Always wrap object/array props in `useMemo` and event handlers in `useCallback` when passing them directly to `<Map>`, particularly for frequently updated properties like `interactiveLayerIds` or when components hold complex application state.
