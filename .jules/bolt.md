@@ -1,0 +1,3 @@
+## 2024-07-03 - Preserving referential equality for map props
+**Learning:** In react-map-gl (and maplibre-gl), passing dynamically generated array references (like `interactiveLayerIds`) or inline functions (`onLoad`, `onData`, `onClick`) directly as props causes severe performance degradation and excessive re-renders during high-frequency events (like panning the map, which updates `viewState`). The `Map` component treats new references as prop changes and triggers expensive re-evaluations.
+**Action:** Always extract dynamic array computations into `useMemo` hooks (e.g. `const interactiveLayerIds = useMemo(() => [...], [activeLayers])`) and inline event handlers into `useCallback` hooks when rendering a Map component.
