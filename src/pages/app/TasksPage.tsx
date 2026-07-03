@@ -235,14 +235,14 @@ const SortableTaskItem = ({
 
           <div className="flex items-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {!isSubtask && onAddSubtask && (
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
+               <Button variant="ghost" size="icon" title="Add subtask" aria-label="Add subtask" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
                  <Plus className="h-3.5 w-3.5" />
                </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
+            <Button variant="ghost" size="icon" title="Edit task" aria-label="Edit task" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
               <Edit2 className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
+            <Button variant="ghost" size="icon" title="Delete task" aria-label="Delete task" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
