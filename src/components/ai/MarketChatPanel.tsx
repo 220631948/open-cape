@@ -91,10 +91,10 @@ export const MarketChatPanel: React.FC<MarketChatPanelProps> = ({ onClose, viewp
           <CardTitle className="text-sm font-semibold text-indigo-900">Market Analyst AI</CardTitle>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={handleClearChat} className="h-6 w-6 text-indigo-400 hover:text-indigo-600" title="Clear Chat">
+          <Button variant="ghost" size="icon" onClick={handleClearChat} className="h-6 w-6 text-indigo-400 hover:text-indigo-600" title="Clear Chat" aria-label="Clear Chat">
             <Trash2 className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 text-indigo-400 hover:text-indigo-600">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 text-indigo-400 hover:text-indigo-600" title="Close Chat" aria-label="Close Chat">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -135,7 +135,7 @@ export const MarketChatPanel: React.FC<MarketChatPanelProps> = ({ onClose, viewp
             className="flex-1 bg-white text-sm h-9"
             disabled={isTyping}
           />
-          <Button type="submit" size="icon" disabled={!input.trim() || isTyping} className="h-9 w-9 bg-indigo-600 hover:bg-indigo-700">
+          <Button type="submit" size="icon" disabled={!input.trim() || isTyping} className="h-9 w-9 bg-indigo-600 hover:bg-indigo-700" title="Send message" aria-label="Send message">
             {isTyping ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Send className="h-4 w-4 text-white" />}
           </Button>
         </form>
