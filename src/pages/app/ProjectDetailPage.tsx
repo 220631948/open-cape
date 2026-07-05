@@ -50,7 +50,7 @@ export const ProjectDetailPage = () => {
          {/* Detail Header */}
          <div className="bg-white border-b border-surface-200 shrink-0 sticky top-0 z-10">
             <div className="max-w-5xl mx-auto px-6 py-6 border-b border-surface-100 flex items-start gap-4">
-               <Button variant="ghost" size="icon" onClick={() => navigate('/app/projects')} className="mt-1 text-surface-400 hover:text-surface-900 shrink-0">
+               <Button variant="ghost" size="icon" onClick={() => navigate('/app/projects')} className="mt-1 text-surface-400 hover:text-surface-900 shrink-0" aria-label="Back to projects" title="Back to projects">
                   <ArrowLeft className="h-5 w-5" />
                </Button>
                <div className="flex-1">
