@@ -187,7 +187,7 @@ const SortableTaskItem = ({
       )}
     >
       <div className="flex items-start gap-3 w-full capitalize">
-        <div {...attributes} {...listeners} className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors">
+        <div {...attributes} {...listeners} title="Drag to reorder" aria-label="Drag to reorder task" className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors">
           <GripVertical className="h-4 w-4" />
         </div>
         
@@ -209,9 +209,11 @@ const SortableTaskItem = ({
 
         <div className="flex flex-wrap items-center gap-1 sm:ml-auto shrink-0 self-center">
           {/* Status Toggles */}
-          <div className="flex items-center bg-surface-100 p-0.5 rounded-lg mr-2 border border-surface-200">
+          <div role="group" aria-label="Task status" className="flex items-center bg-surface-100 p-0.5 rounded-lg mr-2 border border-surface-200">
             <button
               title="Set to 'To Do'"
+              aria-label="Set to 'To Do'"
+              aria-pressed={task.status === 'todo'}
               onClick={() => onUpdate(task.id, { status: 'todo' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'todo' ? "bg-white shadow-sm text-surface-900 ring-1 ring-surface-200" : "text-surface-50 hover:text-surface-700")}
             >
@@ -219,6 +221,8 @@ const SortableTaskItem = ({
             </button>
             <button
               title="Set to 'In Progress'"
+              aria-label="Set to 'In Progress'"
+              aria-pressed={task.status === 'in_progress'}
               onClick={() => onUpdate(task.id, { status: 'in_progress' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'in_progress' ? "bg-white shadow-sm text-indigo-600 ring-1 ring-surface-200" : "text-surface-500 hover:text-indigo-500")}
             >
@@ -226,6 +230,8 @@ const SortableTaskItem = ({
             </button>
             <button
               title="Set to 'Done'"
+              aria-label="Set to 'Done'"
+              aria-pressed={task.status === 'done'}
               onClick={() => onUpdate(task.id, { status: 'done' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'done' ? "bg-white shadow-sm text-emerald-600 ring-1 ring-surface-200" : "text-surface-500 hover:text-emerald-500")}
             >
@@ -235,14 +241,14 @@ const SortableTaskItem = ({
 
           <div className="flex items-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {!isSubtask && onAddSubtask && (
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
+               <Button variant="ghost" size="icon" title="Add Sub-task" aria-label="Add Sub-task" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
                  <Plus className="h-3.5 w-3.5" />
                </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
+            <Button variant="ghost" size="icon" title="Edit task" aria-label="Edit task" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
               <Edit2 className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
+            <Button variant="ghost" size="icon" title="Delete task" aria-label="Delete task" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
