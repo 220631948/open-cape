@@ -187,7 +187,7 @@ const SortableTaskItem = ({
       )}
     >
       <div className="flex items-start gap-3 w-full capitalize">
-        <div {...attributes} {...listeners} className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors">
+        <div {...attributes} {...listeners} className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors" aria-label="Drag to reorder task" title="Drag to reorder task" role="button" tabIndex={0}>
           <GripVertical className="h-4 w-4" />
         </div>
         
@@ -235,14 +235,14 @@ const SortableTaskItem = ({
 
           <div className="flex items-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {!isSubtask && onAddSubtask && (
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
+               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)} aria-label="Add subtask" title="Add subtask">
                  <Plus className="h-3.5 w-3.5" />
                </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)} aria-label="Edit task" title="Edit task">
               <Edit2 className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)} aria-label="Delete task" title="Delete task">
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
