@@ -1,0 +1,3 @@
+## 2024-05-18 - MapLibre React Re-renders
+**Learning:** In heavily map-centric React applications using `react-map-gl`, calculating derived props like `interactiveLayerIds` inline within the render method (e.g., combining `.map()`, `.filter()`, and `.flatMap()`) breaks referential equality. This forces the `<Map>` component to frequently re-render or constantly unbind/rebind map layers and events, leading to severe sluggishness.
+**Action:** Always extract dynamic array or object props passed to `<Map>` into `useMemo` hooks (e.g., `interactiveLayerIds`, `mapStyle`) and keep expensive callback functions in `useCallback` (e.g., `onClick`, `onMove`).
