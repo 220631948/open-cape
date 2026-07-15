@@ -1,0 +1,3 @@
+## 2026-07-15 - react-map-gl interactiveLayerIds inline array re-renders
+**Learning:** Passing an inline array or dynamically mapping one on the fly to `interactiveLayerIds` in react-map-gl breaks referential equality, forcing the map to re-evaluate interactive layers and re-bind event handlers on every state update (e.g., during panning when `setViewState` triggers a render). This causes severe performance degradation.
+**Action:** Always wrap arrays passed to `interactiveLayerIds` in `useMemo` or ensure they maintain referential equality across standard re-renders to maintain map interaction performance.
