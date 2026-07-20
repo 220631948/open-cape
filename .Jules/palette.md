@@ -1,0 +1,3 @@
+## 2024-05-24 - Drag Handle Accessibility
+**Learning:** Custom interactive elements like dnd-kit drag handles in this app often lack keyboard focus and screen reader context out of the box because they are generic `div` elements with custom event listeners rather than native interactive elements.
+**Action:** When adding or modifying custom interactive elements like drag handles, explicitly ensure keyboard accessibility by adding `role="button"` and `tabIndex={0}` to the element, along with contextually appropriate `aria-label` and `title` attributes.
