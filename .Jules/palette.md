@@ -1,0 +1,3 @@
+## 2026-07-22 - Adding informative aria-labels and silencing nested content
+**Learning:** When adding ARIA labels to buttons containing dynamic badges (like a notification unread count), it's more accessible to encapsulate the full meaning inside the parent button's `aria-label` (e.g., 'Notifications, 5 unread') and apply `aria-hidden="true"` to the nested icon and badge elements. This prevents duplicate and confusing sequential announcements.
+**Action:** When encountering icon-only buttons with nested status badges, apply the descriptive state to the parent `aria-label` and hide the decorative/redundant child nodes from assistive technologies.
