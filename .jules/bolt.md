@@ -1,0 +1,1 @@
+## 2026-07-26 - Memoize interactiveLayerIds in MapPage\n**Learning:** The inline array mapping for interactiveLayerIds in the Map component recreates a new array reference every render, causing the Map to potentially re-evaluate interactive layers unnecessariliy.\n**Action:** Extract inline array generation to a useMemo hook in map/map components.
