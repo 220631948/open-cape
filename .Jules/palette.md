@@ -1,0 +1,3 @@
+## 2024-05-18 - Handling dynamic status badges in icon buttons
+**Learning:** When adding ARIA labels to icon-only buttons that also contain dynamic visual status badges (like unread counts), wrapping the entire context in the main element's `aria-label` while using `aria-hidden="true"` on the internal decorative elements (the icon and the visual badge) provides a much cleaner experience for screen readers, avoiding redundant or confusing announcements.
+**Action:** Always merge dynamic status text into the main interactive element's `aria-label` and hide the separate visual components from assistive tech when improving icon buttons.
