@@ -1,0 +1,3 @@
+## 2024-03-21 - Screen reader context for icon buttons with badges
+**Learning:** When adding unread counts or other visual status badges inside icon-only buttons, standard screen reader behavior often confusingly reads both the button label (if present) and the raw badge text sequentially, or reads the badge text out of context.
+**Action:** Always include the status text contextually within the main interactive element's `aria-label` (e.g., `aria-label="Alerts (5 unread)"`), and strictly apply `aria-hidden="true"` to both the decorative icon and the visual badge to prevent redundant or confusing announcements.
