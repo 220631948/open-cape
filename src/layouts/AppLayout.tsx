@@ -51,8 +51,15 @@ export const AppLayout = () => {
     <div className="flex h-screen overflow-hidden bg-surface-50 text-surface-900">
       {/* Mobile drawer toggle */}
       <div className="md:hidden fixed z-50 bottom-4 right-4">
-        <Button size="icon" className="rounded-full shadow-lg" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        <Button
+          size="icon"
+          className="rounded-full shadow-lg"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          title={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
         </Button>
       </div>
 
@@ -194,10 +201,12 @@ export const AppLayout = () => {
               size="icon" 
               className="text-surface-500 relative hidden sm:flex hover:bg-surface-100" 
               onClick={() => navigate('/app/watchlists')}
+              aria-label={`Watchlists${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              title="Watchlists"
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-5 w-5" aria-hidden="true" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-4 w-4 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                <span className="absolute top-1 right-1 h-4 w-4 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white" aria-hidden="true">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
