@@ -1,0 +1,3 @@
+## 2025-01-20 - Memoization of MapLibre Layer Props
+**Learning:** In MapLibre/react-map-gl implementations, passing inline arrays or objects to props like `interactiveLayerIds` triggers deep map re-renders on every parent component update, which is a major performance bottleneck for complex mapping applications.
+**Action:** Always wrap arrays for layer IDs and map event handlers (like `onLoad` or `onData`) in `useMemo` or `useCallback` to preserve referential equality and avoid unnecessary rendering cycles.
