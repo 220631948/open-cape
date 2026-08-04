@@ -1,0 +1,3 @@
+## 2025-03-08 - Added accessible tooltips and context to key navigational buttons
+**Learning:** Icon-only buttons (like the notifications bell or mobile hamburger menu) severely lack context for screen-reader and hover users. Additionally, when buttons include internal badges (like unread counts), screen readers may confusingly announce the button label and the badge content sequentially or out of context.
+**Action:** Always add both `aria-label` and `title` to icon-only buttons. When adding complex labels that summarize internal state (like "Watchlists, 3 unread"), explicitly add `aria-hidden="true"` to the internal visual badge and icon elements to prevent duplicate or disjointed readouts.
