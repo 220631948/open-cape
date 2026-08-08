@@ -1,0 +1,3 @@
+## 2024-03-20 - Missing Accessibility Labels on App Layout Buttons
+**Learning:** Found that core app navigation and toggle buttons (like the mobile menu toggle and watchlist alert button in `AppLayout.tsx`) were missing critical accessibility attributes, leading to a poor experience for screen reader users and a lack of tooltips for standard users.
+**Action:** When implementing generic icon buttons (especially mobile menus or alert indicators), ensure `aria-label`, `title`, and appropriate `aria-hidden="true"` tags (on inner SVG icons and badge numbers if redundant) are applied. For toggle buttons, use `aria-expanded` and dynamic `aria-label`s based on state.
