@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessible Drawer Controls in Layer Panel
+**Learning:** Icon-only toggle buttons for complex UI states (like expanding/collapsing side panels or opening dialogs) often lack state indication for screen readers, meaning users can't tell if the panel is currently open or closed just by focusing the button.
+**Action:** When implementing menu or drawer toggle buttons, always add `aria-expanded={isOpen}` to indicate state, provide dynamic `aria-label` and `title` attributes reflecting the action, and apply `aria-hidden="true"` to decorative child icons. For dialog triggers, add `aria-haspopup="dialog"`.
