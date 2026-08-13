@@ -1,0 +1,3 @@
+## 2024-05-15 - Contextual Accessibility for Badge Icons
+**Learning:** Adding status indicators (like unread counts) inside generic icon-only buttons can lead to confusing and redundant screen reader readouts. For instance, a notification bell with an unread badge inside will be read as separate parts if not contained properly by its parent button.
+**Action:** When adding or updating icon buttons with unread badges, supply an `aria-label` to the parent wrapper that explicitly mentions the visual state (e.g. `aria-label="Notifications, 3 unread"`). Ensure child icons and visual badges have `aria-hidden="true"` so that the screen reader solely reads the contextual parent label.
