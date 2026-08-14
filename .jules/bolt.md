@@ -1,0 +1,3 @@
+## 2024-08-14 - Prevent Map Re-renders on Interaction
+**Learning:** In complex mapping applications using `react-map-gl`, calculating array properties like `interactiveLayerIds` inline within the render method breaks referential equality. This forces the underlying Mapbox/MapLibre instance to unnecessarily tear down and rebuild event bindings or re-evaluate layer interactivity on every single React render, leading to significant input lag and degraded map performance.
+**Action:** Always wrap dynamically calculated array or object props passed to `<Map>` in a `useMemo` hook, especially for core props like `interactiveLayerIds`, to preserve referential equality across standard re-renders.

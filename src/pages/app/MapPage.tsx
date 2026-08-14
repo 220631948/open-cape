@@ -221,6 +221,20 @@ export const MapPage = () => {
 
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
 
+  // ⚡ Bolt: Memoize interactiveLayerIds to preserve referential equality
+  // and prevent the Map component from re-rendering continuously on every state change
+  const interactiveLayerIds = useMemo(() => [
+    ...activeLayers.map(id => `layer-${id}`),
+    ...activeLayers.map(id => `layer-${id}-fill`),
+    ...activeLayers.map(id => `layer-${id}-line`),
+    ...activeLayers.map(id => `layer-${id}-circle`),
+    ...activeLayers.map(id => `layer-${id}-clusters`),
+    ...activeLayers.map(id => `layer-${id}-cluster-count`),
+    ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+      .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+    "drawing-annotation-images"
+  ], [activeLayers]);
+
   // Keep MapboxDraw features on top of dynamic rasters/layers
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -813,20 +827,7 @@ export const MapPage = () => {
                 }
               }}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
