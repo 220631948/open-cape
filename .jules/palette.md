@@ -1,0 +1,3 @@
+## 2024-03-24 - Missing ARIA Labels on Dialog Close/Action Buttons
+**Learning:** The application extensively uses `size="icon"` and `variant="ghost"` for `<Button>` elements (especially close buttons using `<X />`) across multiple dialogs and panels without `aria-label` or `title` attributes. This pattern creates significant accessibility barriers for screen reader users and missing hover tooltips for mouse users.
+**Action:** Always verify custom `Button` components for `aria-label` when `size="icon"`. Apply `aria-label`, `title`, and `aria-hidden="true"` on the inner icon to prevent double readouts.
