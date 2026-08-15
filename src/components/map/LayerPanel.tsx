@@ -359,9 +359,11 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
           size="icon"
           onClick={() => setIsOpen(true)}
           title="Expand layers"
+          aria-label="Expand layers"
+          aria-expanded={isOpen}
           className="text-surface-500 hover:text-surface-900"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
     );
@@ -385,16 +387,21 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
           onClick={() => setIsAddLayerOpen(true)}
           className="text-surface-400 hover:text-indigo-600 transition-colors"
           title="Add custom layer"
+          aria-label="Add custom layer"
+          aria-expanded={isAddLayerOpen}
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-5 w-5" aria-hidden="true" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
+          title="Collapse layers"
+          aria-label="Collapse layers"
+          aria-expanded={isOpen}
           className="-mr-2 text-surface-400 hover:text-surface-900"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
 
