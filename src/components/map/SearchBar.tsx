@@ -50,16 +50,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
     }
   }, [debouncedSearch, searchSuggestions, clearResults]);
 
-  const filteredDrawings = debouncedSearch.length >= 2 
-    ? drawings.filter(d => d.title.toLowerCase().includes(debouncedSearch.toLowerCase()))
-    : [];
+  const filteredDrawings = React.useMemo(() => {
+    return debouncedSearch.length >= 2
+      ? drawings.filter(d => d.title.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      : [];
+  }, [debouncedSearch, drawings]);
 
-  const filteredAnnotations = debouncedSearch.length >= 2
-    ? annotations.filter(a => 
-        a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) || 
-        a.body.toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : [];
+  const filteredAnnotations = React.useMemo(() => {
+    return debouncedSearch.length >= 2
+      ? annotations.filter(a =>
+          a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          a.body.toLowerCase().includes(debouncedSearch.toLowerCase())
+        )
+      : [];
+  }, [debouncedSearch, annotations]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {

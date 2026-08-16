@@ -1,0 +1,3 @@
+## 2024-06-07 - React useMemo on map/filter derived state
+**Learning:** In MapSearch and SearchBar, filtering and deriving mapping states (`drawings.filter(...)`, `uniqueSuburbs = Array.from(new Set(results.map(...)))`) directly inside component bodies forces redundant heavy data transformations on every re-render (like cursor/selection updates in a dropdown).
+**Action:** When working with React dropdowns or search bars handling local filtering logic on moderately large data sets (like map points or features), ensure the filtered results are wrapped in `useMemo` so they only recalculate when the query or underlying list actually changes, rather than on every `isOpen` or `selectedIndex` update.
