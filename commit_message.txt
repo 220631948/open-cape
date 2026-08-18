@@ -1,0 +1,18 @@
+🎨 Palette: Add accessibility attributes to Tasks page interactive elements
+
+What:
+- Added `role="button"`, `tabIndex={0}`, `aria-label`, and `title` to the drag-and-drop handles (`GripVertical`) for tasks to ensure they are keyboard accessible and screen-reader friendly.
+- Added explicit `aria-label` and `title` attributes to the icon-only "Add Subtask", "Edit Task", and "Delete Task" buttons in the task list.
+
+Why:
+- The drag handle lacked role and keyboard focus indicators, making reordering difficult or impossible for assistive technology users.
+- The action buttons were icon-only without accessible names, meaning screen readers would announce them genericly (e.g., "button"), confusing users about their purpose.
+
+Accessibility:
+- Screen readers will now announce the exact function of the icon-only buttons ("Add subtask", "Edit task", "Delete task") and the drag handle.
+- Users navigating via keyboard can now focus and interact with the drag handle natively.
+- Mouse users benefit from native hover tooltips via the `title` attribute, clarifying the icon's action.
+
+Before/After:
+- Before: Icon buttons and drag handle lacked context for non-visual users.
+- After: Elements have clear accessible names, tooltips, and correct interactive semantics.
