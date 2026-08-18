@@ -160,7 +160,7 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
         {searchTerm && (
            <button 
              onClick={() => { setSearchTerm(''); inputRef.current?.focus(); }}
-             className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 rounded-full hover:bg-surface-100 p-0.5 transition-colors"
+             className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 rounded-full hover:bg-surface-100 p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
              aria-label="Clear search"
            >
              <X className="h-4 w-4" />
@@ -188,7 +188,11 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
                    <Clock className="w-4 h-4 text-surface-400" />
                    {term}
                  </div>
-                 <button onClick={(e) => clearRecent(e, term)} className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors">
+                 <button
+                   onClick={(e) => clearRecent(e, term)}
+                   className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                   aria-label={`Remove ${term} from recent searches`}
+                 >
                    <X className="w-3 h-3" />
                  </button>
                </li>
