@@ -1,0 +1,3 @@
+## 2024-05-24 - Map Component Referential Equality
+**Learning:** Map components (like `react-map-gl/maplibre`) are extremely sensitive to referential equality of complex props (arrays, objects, functions). Passing dynamically generated arrays (like `.map()` outputs) or inline functions directly into props causes the Map to unmount/remount internal structures or rebind events on every React render loop, killing performance on map interaction.
+**Action:** Always wrap arrays derived from state in `useMemo` and event handler functions in `useCallback` when passing them as props to heavy Map components.
