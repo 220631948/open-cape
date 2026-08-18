@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef, KeyboardEvent, useMemo } from 'react';
 import { Search, Loader2, MapPin, Clock, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { useErfSearch, ErfRecord } from '@/hooks/useErfSearch';
@@ -82,24 +82,28 @@ export const MapSearch: React.FC<MapSearchProps> = ({ onResultSelect }) => {
   const showRecent = isOpen && debouncedSearch.length < 2 && recentSearches.length > 0;
   const showResults = isOpen && debouncedSearch.length >= 2;
 
-  const uniqueSuburbs = Array.from(new Set(results.map(r => r.allotmentArea).filter(Boolean)));
-  const uniqueStreets = Array.from(new Set(results.map(r => {
-    if (!r.address) return null;
-    const parts = r.address.split(',')[0].trim().split(' ');
-    if (parts.length > 1 && !isNaN(Number(parts[0]))) {
-      return parts.slice(1).join(' ');
-    }
-    const street = r.address.split(',')[0].trim();
-    // Use regex to remove numbers at start if still present
-    return street.replace(/^\d+\s*/, '');
-  }).filter(Boolean)));
-  const uniquePropertyTypes = Array.from(new Set(results.map(r => r.zoning).filter(Boolean)));
+  // ⚡ Bolt: Memoize expensive array maps and sets to prevent recalculation
+  // on every render (e.g. when selectedIndex changes during keyboard navigation)
+  const suggestions = useMemo(() => {
+    const uniqueSuburbs = Array.from(new Set(results.map(r => r.allotmentArea).filter(Boolean)));
+    const uniqueStreets = Array.from(new Set(results.map(r => {
+      if (!r.address) return null;
+      const parts = r.address.split(',')[0].trim().split(' ');
+      if (parts.length > 1 && !isNaN(Number(parts[0]))) {
+        return parts.slice(1).join(' ');
+      }
+      const street = r.address.split(',')[0].trim();
+      // Use regex to remove numbers at start if still present
+      return street.replace(/^\d+\s*/, '');
+    }).filter(Boolean)));
+    const uniquePropertyTypes = Array.from(new Set(results.map(r => r.zoning).filter(Boolean)));
 
-  const suggestions = [
-    ...uniqueSuburbs.map(s => ({ type: 'suburb', text: s })),
-    ...uniqueStreets.map(s => ({ type: 'street', text: s })),
-    ...uniquePropertyTypes.map(s => ({ type: 'type', text: s })),
-  ].slice(0, 5); // Max 5 category suggestions
+    return [
+      ...uniqueSuburbs.map(s => ({ type: 'suburb', text: s })),
+      ...uniqueStreets.map(s => ({ type: 'street', text: s })),
+      ...uniquePropertyTypes.map(s => ({ type: 'type', text: s })),
+    ].slice(0, 5); // Max 5 category suggestions
+  }, [results]);
 
   const listMode = showRecent ? 'recent' : (showResults ? 'results' : 'none');
   const maxIndex = listMode === 'recent' 
