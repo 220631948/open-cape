@@ -464,6 +464,161 @@ export const MapPage = () => {
     }
   }, [drawings, activeLayers]);
 
+
+  // ⚡ Bolt Optimization: Memoize dynamic layer IDs to preserve referential equality
+  // and prevent expensive Map re-renders during high-frequency events like panning.
+  const interactiveLayerIds = useMemo(() => {
+    return [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ];
+  }, [activeLayers]);
+
+
+  // ⚡ Bolt Optimization: Memoize inline map event handlers to prevent Map re-renders
+  const handleMapLoad = useCallback(() => {
+    setIsMapLoading(false);
+  }, []);
+
+
+  // ⚡ Bolt Optimization: Memoize inline map event handlers
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
+
+  const handleMapClick = useCallback(async (evt) => {
+                if (drawMode === "radius") {
+                  const { lng, lat } = evt.lngLat;
+                  setAnalysisCenter([lng, lat]);
+                  setIsAnalyzing(true);
+
+                  // Generate buffer for visual
+                  const buffer = getBufferPolygon([lng, lat], analysisRadius);
+                  setRadiusBuffer(buffer);
+
+                  // Perform query after short delay to simulate "thinking" and allow state to settle
+                  setTimeout(() => {
+                    const map = mapRef.current?.getMap();
+                    if (map) {
+                      const features = map.queryRenderedFeatures();
+                      const results = queryNearbyFeatures([lng, lat], analysisRadius, features);
+                      setRadiusResults(results);
+                    }
+                    setIsAnalyzing(false);
+                  }, 800);
+
+                  // Keep select mode active so toolbar highlights it, or stay in radius?
+                  // Usually user might want to click multiple times.
+                  return;
+                }
+
+                if (drawMode !== "select") return;
+
+                // Handle clicks on interactive vector layers
+                let clickedMapFeature: any = null;
+                if (evt.features && evt.features.length > 0) {
+                  const feature = evt.features[0];
+
+                  // Handle drawing annotation image clicks
+                  if (feature.layer.id === 'drawing-annotation-images') {
+                    setPopupInfo({
+                      lngLat: [evt.lngLat.lng, evt.lngLat.lat],
+                      feature: feature,
+                      layerId: 'drawing-annotation'
+                    });
+                    return;
+                  }
+
+                  // If it's a cadastre or zoning layer, fetch granular parcel data via RightDetailDrawer logic
+                  const layerId = feature.layer.id;
+                  const isParcelLayer = [
+                    'wcgp-cadastre',
+                    'wcgp-cadastre-vector',
+                    'wcgp-zoning-vector',
+                    'erf_boundaries',
+                    'general_plans',
+                    'zoning_dms'
+                  ].some(id => layerId.includes(id));
+
+                  if (isParcelLayer) {
+                     clickedMapFeature = feature;
+                  } else {
+                    // If it's one of our other defined interactive layers (schools, clinics), show popup
+                    setPopupInfo({
+                      lngLat: [evt.lngLat.lng, evt.lngLat.lat],
+                      feature: feature,
+                      layerId: feature.layer.id
+                    });
+                    return;
+                  }
+                }
+
+                // Clicking off vector layers clears it
+                setPopupInfo(null);
+
+                const { lng, lat } = evt.lngLat;
+                try {
+                  setIsFetchingFeature(true);
+                  // Attempt to fetch live data from CCT API, fallback to map feature attributes if offline/unavailable
+                  const liveFeature = await getLiveErfRecord(lng, lat, clickedMapFeature);
+                  if (liveFeature) {
+                    setSelectedErf(liveFeature);
+                    setDrawerOpen(true);
+                  } else {
+                    // Final fallback if even the mapper fails to return anything
+                    let address = null;
+                    let allotmentArea = "Not available from source";
+                    try {
+                       const { reverseGeocode } = await import('@/services/geocodingService');
+                       const geocodeResult = await reverseGeocode(lat, lng);
+                       if (geocodeResult) {
+                         address = geocodeResult.formattedAddress || geocodeResult.address || null;
+                         allotmentArea = "Location Identified";
+                       }
+                    } catch (e) {
+                      console.warn("Reverse geocode failed on map click", e);
+                    }
+
+                    setSelectedErf({
+                      id: `loc-${lat.toFixed(4)}-${lng.toFixed(4)}`,
+                      objectId: 0,
+                      erfNumber: address ? "Address Match" : "Not available from source",
+                      allotmentArea: allotmentArea,
+                      address: address,
+                      center: { lat, lng },
+                      status: address ? "geocode" : "offline",
+                      zoning: "Not available from source",
+                      zoningCategory: "Unknown",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [lng, lat],
+                      },
+                      properties: {}
+                    } as any);
+                    setDrawerOpen(true);
+                  }
+                } catch (e) {
+                  console.error("Error handling map click selection:", e);
+                  setSelectedErf(null);
+                  setDrawerOpen(false);
+                } finally {
+                  setIsFetchingFeature(false);
+                }
+              }, [drawMode, analysisRadius]);
+
   const onMove = useCallback((evt: any) => {
     setViewState(evt.viewState);
   }, []);
@@ -803,149 +958,11 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onLoad={handleMapLoad}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
-              onClick={async (evt) => {
-                if (drawMode === "radius") {
-                  const { lng, lat } = evt.lngLat;
-                  setAnalysisCenter([lng, lat]);
-                  setIsAnalyzing(true);
-                  
-                  // Generate buffer for visual
-                  const buffer = getBufferPolygon([lng, lat], analysisRadius);
-                  setRadiusBuffer(buffer);
-
-                  // Perform query after short delay to simulate "thinking" and allow state to settle
-                  setTimeout(() => {
-                    const map = mapRef.current?.getMap();
-                    if (map) {
-                      const features = map.queryRenderedFeatures();
-                      const results = queryNearbyFeatures([lng, lat], analysisRadius, features);
-                      setRadiusResults(results);
-                    }
-                    setIsAnalyzing(false);
-                  }, 800);
-                  
-                  // Keep select mode active so toolbar highlights it, or stay in radius?
-                  // Usually user might want to click multiple times.
-                  return;
-                }
-
-                if (drawMode !== "select") return;
-
-                // Handle clicks on interactive vector layers
-                let clickedMapFeature: any = null;
-                if (evt.features && evt.features.length > 0) {
-                  const feature = evt.features[0];
-
-                  // Handle drawing annotation image clicks
-                  if (feature.layer.id === 'drawing-annotation-images') {
-                    setPopupInfo({
-                      lngLat: [evt.lngLat.lng, evt.lngLat.lat],
-                      feature: feature,
-                      layerId: 'drawing-annotation'
-                    });
-                    return;
-                  }
-
-                  // If it's a cadastre or zoning layer, fetch granular parcel data via RightDetailDrawer logic
-                  const layerId = feature.layer.id;
-                  const isParcelLayer = [
-                    'wcgp-cadastre',
-                    'wcgp-cadastre-vector',
-                    'wcgp-zoning-vector',
-                    'erf_boundaries',
-                    'general_plans',
-                    'zoning_dms'
-                  ].some(id => layerId.includes(id));
-
-                  if (isParcelLayer) {
-                     clickedMapFeature = feature;
-                  } else {
-                    // If it's one of our other defined interactive layers (schools, clinics), show popup
-                    setPopupInfo({
-                      lngLat: [evt.lngLat.lng, evt.lngLat.lat],
-                      feature: feature,
-                      layerId: feature.layer.id
-                    });
-                    return;
-                  }
-                }
-                
-                // Clicking off vector layers clears it
-                setPopupInfo(null);
-
-                const { lng, lat } = evt.lngLat;
-                try {
-                  setIsFetchingFeature(true);
-                  // Attempt to fetch live data from CCT API, fallback to map feature attributes if offline/unavailable
-                  const liveFeature = await getLiveErfRecord(lng, lat, clickedMapFeature);
-                  if (liveFeature) {
-                    setSelectedErf(liveFeature);
-                    setDrawerOpen(true);
-                  } else {
-                    // Final fallback if even the mapper fails to return anything
-                    let address = null;
-                    let allotmentArea = "Not available from source";
-                    try {
-                       const { reverseGeocode } = await import('@/services/geocodingService');
-                       const geocodeResult = await reverseGeocode(lat, lng);
-                       if (geocodeResult) {
-                         address = geocodeResult.formattedAddress || geocodeResult.address || null;
-                         allotmentArea = "Location Identified";
-                       }
-                    } catch (e) {
-                      console.warn("Reverse geocode failed on map click", e);
-                    }
-                    
-                    setSelectedErf({
-                      id: `loc-${lat.toFixed(4)}-${lng.toFixed(4)}`,
-                      objectId: 0,
-                      erfNumber: address ? "Address Match" : "Not available from source",
-                      allotmentArea: allotmentArea,
-                      address: address,
-                      center: { lat, lng },
-                      status: address ? "geocode" : "offline",
-                      zoning: "Not available from source",
-                      zoningCategory: "Unknown",
-                      geometry: {
-                        type: "Point",
-                        coordinates: [lng, lat],
-                      },
-                      properties: {}
-                    } as any);
-                    setDrawerOpen(true);
-                  }
-                } catch (e) {
-                  console.error("Error handling map click selection:", e);
-                  setSelectedErf(null);
-                  setDrawerOpen(false);
-                } finally {
-                  setIsFetchingFeature(false);
-                }
-              }}
+              interactiveLayerIds={interactiveLayerIds}
+              onClick={handleMapClick}
         onError={(e) => {
           if (e.error?.message?.includes('openaerialmap.org') || typeof e.error?.message === 'string' && e.error.message.includes('tiles.openaerialmap.org')) {
              if (oamHealth !== 'offline') {

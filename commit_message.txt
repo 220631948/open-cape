@@ -1,0 +1,6 @@
+⚡ Bolt: [memoize Map component inline props to prevent re-renders]
+
+💡 What: Extracted inline array `interactiveLayerIds` into a `useMemo` hook, and inline functions `onLoad`, `onData`, and `onClick` into `useCallback` hooks on the `<Map>` component.
+🎯 Why: `react-map-gl`'s `<Map>` component receives high-frequency state updates (like `viewState` during panning). Passing inline arrays and functions causes them to be recreated on every render, destroying referential equality and triggering massive, expensive re-evaluations inside the Map context.
+📊 Impact: Significantly reduces map re-renders and CPU overhead during panning, zooming, and drawing operations.
+🔬 Measurement: Profile the Map component in React DevTools while panning; observe reduced render times and fewer "props changed" events for `interactiveLayerIds` and callback functions.
