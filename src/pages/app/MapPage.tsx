@@ -468,6 +468,31 @@ export const MapPage = () => {
     setViewState(evt.viewState);
   }, []);
 
+  // ⚡ Bolt: Memoize interactiveLayerIds to prevent unnecessary map re-renders
+  // and event re-bindings on every single component render
+  const interactiveLayerIds = useMemo(() => [
+    ...activeLayers.map(id => `layer-${id}`),
+    ...activeLayers.map(id => `layer-${id}-fill`),
+    ...activeLayers.map(id => `layer-${id}-line`),
+    ...activeLayers.map(id => `layer-${id}-circle`),
+    ...activeLayers.map(id => `layer-${id}-clusters`),
+    ...activeLayers.map(id => `layer-${id}-cluster-count`),
+    ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+      .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+    "drawing-annotation-images"
+  ], [activeLayers]); // ALL_SOURCES is constant, no need to include
+
+  // ⚡ Bolt: Memoize onLoad and onData to prevent map component event rebinding
+  const onMapLoad = useCallback(() => setIsMapLoading(false), []);
+  const onMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
   const handleModeChange = (mode: DrawMode) => {
     setDrawMode(mode);
     if (!drawRef.current) return;
@@ -803,30 +828,10 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onLoad={onMapLoad}
+              onData={onMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
