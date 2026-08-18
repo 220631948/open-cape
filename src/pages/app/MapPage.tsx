@@ -213,6 +213,23 @@ export const MapPage = () => {
   const { activeLayers: eeActiveLayers } = useEnvironmentalContext();
 
   const [activeLayers, setActiveLayers] = useState<string[]>(['wcgp-cadastre-vector']);
+
+  // Memoize interactiveLayerIds to prevent Map component re-renders
+  // This preserves referential equality of the array passed to map component prop
+  const interactiveLayerIds = useMemo(() => {
+    return [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ];
+  }, [activeLayers]);
+
   const [layerOpacities, setLayerOpacities] = useState<Record<string, number>>({});
   const [baseMap, setBaseMap] = useState<"street" | "satellite" | "topo">("street");
   const [showHillshade, setShowHillshade] = useState(false);
@@ -813,20 +830,7 @@ export const MapPage = () => {
                 }
               }}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
