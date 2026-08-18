@@ -1,0 +1,1 @@
+## 2024-05-24 - Initial Memory\n**Learning:** When implementing custom UI toggle buttons, always use `role="switch"` and `aria-checked` to ensure proper screen reader context. For grouped selection buttons (like map types), use `aria-pressed` to denote active states.\n**Action:** Add these attributes to toggle-style buttons instead of just visual styling.
