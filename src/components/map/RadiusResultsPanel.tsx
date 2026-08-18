@@ -49,7 +49,7 @@ export const RadiusResultsPanel: React.FC<RadiusResultsPanelProps> = ({
              ))}
           </div>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors">
+        <button onClick={onClose} aria-label="Close panel" className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <X className="h-4 w-4" />
         </button>
       </div>
