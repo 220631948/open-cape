@@ -1,0 +1,3 @@
+## 2026-07-02 - Accessible Interactive Icons
+**Learning:** Found a widespread pattern in this app where generic icon-only interactive elements (like `<Button size="icon">`) are missing `aria-label` and `title` attributes. Additionally, grouped selection toggles (like status buttons) were missing `role="group"` and `aria-pressed`.
+**Action:** Always ensure that icon-only buttons include explicit `aria-label` (for screen readers) and `title` (for hover tooltips) properties across the app. For grouped toggles, add `role="group"` to the container and `aria-pressed` to the active elements to denote their state.
