@@ -234,7 +234,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
     layers: Array<{ id: string; name: string; color: string }>,
   ) => {
     const isGroupOpen = openGroups[groupName] ?? false;
-    
+
     const handleToggleGroup = (e: React.MouseEvent) => {
       e.preventDefault();
       setOpenGroups(prev => ({
@@ -243,7 +243,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
       }));
     };
 
-    const filteredLayers = layers.filter(layer => 
+    const filteredLayers = layers.filter(layer =>
       layer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (layer.id.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -251,12 +251,12 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
     if (searchTerm && filteredLayers.length === 0) return null;
 
     const layersToRender = searchTerm ? filteredLayers : layers;
-    
+
     return (
       <details className={cn("group", searchTerm && "open")} open={searchTerm ? true : isGroupOpen}>
-        <summary 
+        <summary
           onClick={handleToggleGroup}
-          className="text-xs font-bold uppercase tracking-wider text-surface-500 mb-1 flex items-center gap-2 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:text-surface-700 transition-colors" 
+          className="text-xs font-bold uppercase tracking-wider text-surface-500 mb-1 flex items-center gap-2 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:text-surface-700 transition-colors"
           title={helperText}
         >
           <div className="flex items-center gap-2 flex-1">
@@ -394,7 +394,6 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
-          title="Collapse layers"
           className="-mr-2 text-surface-400 hover:text-surface-900"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -402,9 +401,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
       </div>
 
       {isAddLayerOpen && (
-        <AddLayerDialog 
-          onClose={() => setIsAddLayerOpen(false)} 
-          onAdd={handleAddCustomSource} 
+        <AddLayerDialog
+          onClose={() => setIsAddLayerOpen(false)}
+          onAdd={handleAddCustomSource}
         />
       )}
 
@@ -419,7 +418,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             className="w-full pl-8 pr-8 py-1.5 bg-white border border-surface-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all font-medium placeholder:text-surface-400"
           />
           {searchTerm && (
-            <button 
+            <button
               aria-label="Clear search"
               onClick={() => setSearchTerm("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-surface-100 rounded-full transition-colors"
@@ -461,7 +460,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                    {activeLayers.map((id) => {
                      const layerInfo = getLayerInfo(id);
                      return (
-                       <SortableActiveLayerItem 
+                       <SortableActiveLayerItem
                          key={id}
                          id={id}
                          name={layerInfo.name}
@@ -505,7 +504,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               Base contextual map style.
             </p>
             <div className="grid grid-cols-3 gap-2">
-              <button 
+              <button
                 aria-pressed={baseMap === 'street'}
                 onClick={() => setBaseMap('street')}
                 className={cn("border-2 rounded-md overflow-hidden relative group", baseMap === 'street' ? "border-rose-500" : "border-transparent hover:border-surface-300")}
@@ -557,7 +556,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                  <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", showHillshade ? "translate-x-4" : "translate-x-0")} />
                </button>
             </div>
-            
+
             <div className="mt-4 flex flex-col px-1 pt-3 border-t border-surface-200">
                <div className="flex items-center justify-between pointer-events-auto">
                  <span className="text-xs font-semibold text-surface-700 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-blue-500" /> Historical Imagery (EE)</span>
@@ -577,11 +576,11 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                )}
                {historicalYear && import.meta.env.VITE_EE_API_KEY && (
                  <div className="mt-3 text-xs">
-                   <input 
-                     type="range" 
-                     min="1984" 
-                     max="2023" 
-                     step="1" 
+                   <input
+                     type="range"
+                     min="1984"
+                     max="2023"
+                     step="1"
                      value={historicalYear}
                      onChange={(e) => setHistoricalYear(parseInt(e.target.value, 10))}
                      className="w-full h-1.5 bg-surface-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
@@ -719,7 +718,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 TENANT SC OPED
               </div>
             </div>
-            
+
             <div className="space-y-3">
               <div className="text-[9px] text-indigo-600/70 leading-relaxed">
                 Imported GeoJSON layers are isolated to <strong>{profile.fullName || 'Organization'}</strong>.
@@ -737,19 +736,19 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                   },
                 ],
               )}
-              
+
               <div className="grid grid-cols-1 gap-2 mt-4">
-                 <Button 
-                   variant="outline" 
-                   size="sm" 
+                 <Button
+                   variant="outline"
+                   size="sm"
                    className="w-full text-[10px] h-8 border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-600 font-bold border-dashed"
                    onClick={() => document.getElementById('geojson-import-input')?.click()}
                  >
                    <Plus className="w-3 h-3 mr-1" /> Import GeoJSON
                  </Button>
-                 <input 
+                 <input
                    id="geojson-import-input"
-                   type="file" 
+                   type="file"
                    accept=".geojson,application/geo+json"
                    className="hidden"
                    onChange={async (e) => {

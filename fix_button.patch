@@ -1,0 +1,11 @@
+--- src/components/map/LayerPanel.tsx
++++ src/components/map/LayerPanel.tsx
+@@ -406,7 +406,8 @@
+         <Button
+           variant="ghost"
+           size="icon"
+           onClick={() => setIsOpen(false)}
++          title="Collapse layers"
+           className="-mr-2 text-surface-400 hover:text-surface-900"
+         >
+           <ChevronLeft className="h-5 w-5" />

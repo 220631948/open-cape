@@ -1,0 +1,3 @@
+## 2024-03-22 - Layer Panel Accessibility Improvements
+**Learning:** React elements used as toggle switches (e.g. `role="switch"`) need `aria-checked` to reflect their active status to screen readers. Grouped map style selections should be indicated using `aria-pressed`. Also, some icon-only buttons lacked aria-labels completely, such as clear search buttons.
+**Action:** When implementing custom interactive controls, especially those using native `button` elements instead of actual inputs, explicitly define the correct ARIA attributes like `role="switch"`, `aria-checked`, `aria-pressed`, and `aria-label` where text isn't present.
