@@ -3,6 +3,12 @@ import { Source, Layer } from 'react-map-gl/maplibre';
 import { useVectorLayer, VECTOR_LAYERS } from '../../hooks/useVectorLayer';
 import { Loader2, AlertCircle } from 'lucide-react';
 
+const IGNORED_PROPERTIES = new Set([
+  'OBJECTID', 'objectid', 'id', 'Shape_Length', 'Shape_Area',
+  'Shape__Area', 'Shape__Length', '_osint', 'isOverrideLine',
+  'isGhostPoint', 'isVerified'
+]);
+
 export const ActiveVectorLayer: React.FC<{ layerId: string; opacity?: number }> = ({ layerId, opacity = 1 }) => {
   const config = useMemo(() => VECTOR_LAYERS.find(l => l.id === layerId), [layerId]);
   const { data, loading, error } = useVectorLayer(config, true);
@@ -36,11 +42,18 @@ export const ActiveVectorLayer: React.FC<{ layerId: string; opacity?: number }> 
       }
 
       // Check required attributes: if it only has structural/system attributes, it's considered empty
-      const propKeys = Object.keys(f.properties || {}).filter(k => 
-         !['OBJECTID', 'objectid', 'id', 'Shape_Length', 'Shape_Area', 'Shape__Area', 'Shape__Length', '_osint', 'isOverrideLine', 'isGhostPoint', 'isVerified'].includes(k)
-      );
-      
-      if (propKeys.length === 0) {
+      // ⚡ Bolt: Fast path for checking object properties without O(N) array allocation or includes
+      let hasValidProp = false;
+      if (f.properties) {
+        for (const k in f.properties) {
+          if (!IGNORED_PROPERTIES.has(k)) {
+            hasValidProp = true;
+            break; // Exit early once we find a single valid property
+          }
+        }
+      }
+
+      if (!hasValidProp) {
          return false;
       }
 
