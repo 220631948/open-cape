@@ -1,0 +1,1 @@
+## 2026-06-29 - Added Missing ARIA Labels to Map Controls\n**Learning:** The project relies heavily on map interactions where several utility dialogs use icon-only close/action buttons that lacked context for screen readers.\n**Action:** Always ensure `<button><Icon /></button>` elements include descriptive `aria-label` attributes for accessibility.
