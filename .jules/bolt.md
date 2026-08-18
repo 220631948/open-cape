@@ -1,0 +1,3 @@
+## 2024-10-24 - React-map-gl Referential Equality Sensitivity
+**Learning:** `react-map-gl` components are highly sensitive to referential equality for props like `interactiveLayerIds` arrays, `onLoad`, `onData` or nested objects for styling. Passing inline arrays or functions directly into the `<Map>` component's props causes it to constantly re-evaluate them, triggering costly map instance updates and re-bindings of map events (which is extremely noticeable with large layers).
+**Action:** Always wrap complex arrays (like aggregated layer IDs), style objects, and event handlers passed to MapLibre components with `useMemo` or `useCallback` to ensure reference stability across generic state updates in the parent MapPage component.
