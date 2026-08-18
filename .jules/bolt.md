@@ -1,0 +1,3 @@
+## 2024-07-01 - Memoize Map component props to prevent costly re-renders
+**Learning:** In spatial analysis platforms relying on MapLibre and react-map-gl, passing inline arrays/objects (like `interactiveLayerIds`) and inline functions (`onClick`, `onLoad`, etc.) directly as component props breaks referential equality. This triggers unnecessary and highly expensive map re-renders and event re-bindings on every single component state change (e.g. tracking mouse position or a loading spinner).
+**Action:** Always extract complex objects, arrays, and callback functions passed to `<Map>` into `useMemo` and `useCallback` hooks with minimal, accurate dependency arrays to preserve referential equality and maximize map rendering performance.
