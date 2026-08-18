@@ -214,6 +214,32 @@ export const MapPage = () => {
 
   const [activeLayers, setActiveLayers] = useState<string[]>(['wcgp-cadastre-vector']);
   const [layerOpacities, setLayerOpacities] = useState<Record<string, number>>({});
+
+  // ⚡ Bolt optimization: Memoize map props to preserve referential equality
+  // This prevents react-map-gl from unbinding and rebinding interaction events on every render
+  const handleMapLoad = useCallback(() => setIsMapLoading(false), []);
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
+  const interactiveLayerIds = useMemo(() =>
+    [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ],
+    [activeLayers]
+  );
   const [baseMap, setBaseMap] = useState<"street" | "satellite" | "topo">("street");
   const [showHillshade, setShowHillshade] = useState(false);
   const [historicalYear, setHistoricalYear] = useState<number | null>(null);
@@ -803,30 +829,10 @@ export const MapPage = () => {
               ref={mapRef}
               {...viewState}
               onMove={onMove}
-              onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onLoad={handleMapLoad}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
