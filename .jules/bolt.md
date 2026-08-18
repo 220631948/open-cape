@@ -1,0 +1,3 @@
+## 2024-08-18 - Memoize react-map-gl Props to Preserve Referential Equality
+**Learning:** Found that `react-map-gl`'s `<Map>` component receives array props (like `interactiveLayerIds`) that default to inline creations during render. This breaks referential equality, forcing the map library to re-bind events or re-process layers on every single React render loop, which causes notable frame drops and sluggishness when interacting with the rest of the UI.
+**Action:** Always wrap dynamically generated arrays or objects intended for map configuration (e.g., `interactiveLayerIds`, `filter`) in a `useMemo` hook, ensuring they are only regenerated when their underlying dependencies change.
