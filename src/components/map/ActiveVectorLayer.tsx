@@ -7,6 +7,8 @@ export const ActiveVectorLayer: React.FC<{ layerId: string; opacity?: number }> 
   const config = useMemo(() => VECTOR_LAYERS.find(l => l.id === layerId), [layerId]);
   const { data, loading, error } = useVectorLayer(config, true);
 
+  const IGNORED_PROPS = useMemo(() => new Set(['OBJECTID', 'objectid', 'id', 'Shape_Length', 'Shape_Area', 'Shape__Area', 'Shape__Length', '_osint', 'isOverrideLine', 'isGhostPoint', 'isVerified']), []);
+
   const validFeatures = useMemo(() => {
     if (!data?.features) return [];
     return data.features.filter((f: any) => {
@@ -35,18 +37,23 @@ export const ActiveVectorLayer: React.FC<{ layerId: string; opacity?: number }> 
          }
       }
 
-      // Check required attributes: if it only has structural/system attributes, it's considered empty
-      const propKeys = Object.keys(f.properties || {}).filter(k => 
-         !['OBJECTID', 'objectid', 'id', 'Shape_Length', 'Shape_Area', 'Shape__Area', 'Shape__Length', '_osint', 'isOverrideLine', 'isGhostPoint', 'isVerified'].includes(k)
-      );
+      // ⚡ Bolt: Check required attributes efficiently without allocating multiple arrays per feature
+      const props = f.properties || {};
+      let hasValidProp = false;
+      for (const k in props) {
+        if (!IGNORED_PROPS.has(k)) {
+          hasValidProp = true;
+          break; // Early exit
+        }
+      }
       
-      if (propKeys.length === 0) {
+      if (!hasValidProp) {
          return false;
       }
 
       return true;
     });
-  }, [data]);
+  }, [data, IGNORED_PROPS]);
 
   if (!config) return null;
   
