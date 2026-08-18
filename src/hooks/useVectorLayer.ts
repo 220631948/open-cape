@@ -173,11 +173,15 @@ export function useVectorLayer(layerConfig: VectorLayerConfig | undefined, isAct
 
       // Merge verified locations
       const overrides = verifiedLocations.filter(v => v.layerId === layerConfig.id);
+
+      // ⚡ Bolt: Convert overrides to a Map for O(1) lookup to prevent O(n*m) performance degradation
+      // when merging thousands of feature records with verified locations.
+      const overridesMap = new Map(overrides.map(o => [o.id, o]));
       const extraFeatures: any[] = [];
       const mergedFeatures = featureCollection.features.map((f: any) => {
           const fId = f.properties.OBJECTID?.toString() || f.properties.id?.toString();
           const expectedDocId = `${layerConfig.id}_${fId}`;
-          const override = overrides.find(o => o.id === expectedDocId);
+          const override = overridesMap.get(expectedDocId);
 
           const osint = {
             sourceId: layerConfig.id,
