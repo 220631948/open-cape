@@ -37,7 +37,7 @@ export const OsintDrawer: React.FC<OsintDrawerProps> = ({ className, isOpen, onC
           <ShieldCheck className={cn("h-4 w-4", isVerified ? "text-emerald-500" : "text-surface-400")} />
           OSINT: {layerName}
         </h2>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-surface-500 hover:text-surface-900 -mr-2">
+        <Button aria-label="Close drawer" variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-surface-500 hover:text-surface-900 -mr-2">
           <X className="h-4 w-4" />
         </Button>
       </div>

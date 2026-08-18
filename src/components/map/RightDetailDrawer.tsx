@@ -197,6 +197,7 @@ export const RightDetailDrawer: React.FC<RightDetailDrawerProps> = ({ className,
              </Link>
           )}
           <Button
+            aria-label="Close details"
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(false)}
