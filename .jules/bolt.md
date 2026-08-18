@@ -1,0 +1,3 @@
+## 2024-05-18 - Memoizing inline arrays for MapLibre props
+**Learning:** In a highly interactive React application using MapLibre via `react-map-gl`, passing inline arrays to props like `interactiveLayerIds` causes the array to be recreated on every render. Because the array reference changes, the map library repeatedly unbinds and rebinds all pointer events under the hood, degrading performance significantly, especially when rendering features.
+**Action:** Always memoize arrays and objects used as props on map components (like `interactiveLayerIds`, `style`, or `filter`) using `useMemo` to maintain referential stability across re-renders.

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Google AI Studio App</title>
+    <script type="module" crossorigin src="/assets/index-CyQhdzjz.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-gis-BgmENLZA.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-others-CynBCDtm.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-AB1hW2VY.js">
+    <link rel="modulepreload" crossorigin href="/assets/ui-components-CZPO-bSL.js">
+    <link rel="stylesheet" crossorigin href="/assets/vendor-gis-B-YMMjus.css">
+    <link rel="stylesheet" crossorigin href="/assets/vendor-others-CPW6_2MZ.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-B5JPzSjP.css">
+  </head>
+  <body>
+    <div id="debug-initial-load" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; z-index: 99999;">
+      <svg class="animate-spin" style="animation: spin 1s linear infinite; height: 40px; width: 40px; color: #3b82f6; margin-bottom: 20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle>
+        <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" style="opacity: 0.75;"></path>
+      </svg>
+      <div id="loader-title" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 8px;">Initializing GIS Environment</div>
+      <div id="loader-status" style="font-size: 0.875rem; color: #94a3b8;">Loading spatial data and remote services...</div>
+      <style>
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      </style>
+    </div>
+    <div id="root"></div>
+    <script>
+      // When React renders into #root, we can remove the yellow banner if we want,
+      // but actually React mounts *inside* #root, so #debug-initial-load will stay unless we remove it!
+      // This will prove if index.html is served.
+    </script>
+  </body>
+</html>
