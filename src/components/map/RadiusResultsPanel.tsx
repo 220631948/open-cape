@@ -37,6 +37,8 @@ export const RadiusResultsPanel: React.FC<RadiusResultsPanelProps> = ({
                <button 
                  key={r}
                  onClick={() => onRadiusChange?.(r)}
+                 aria-pressed={radius === r}
+                 aria-label={`Set radius to ${r} meters`}
                  className={cn(
                    "text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all",
                    radius === r 
@@ -49,7 +51,12 @@ export const RadiusResultsPanel: React.FC<RadiusResultsPanelProps> = ({
              ))}
           </div>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors">
+        <button
+          onClick={onClose}
+          className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors"
+          aria-label="Close radius analysis panel"
+          title="Close panel"
+        >
           <X className="h-4 w-4" />
         </button>
       </div>
