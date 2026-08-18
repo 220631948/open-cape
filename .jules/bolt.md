@@ -1,0 +1,3 @@
+## 2024-08-12 - Prevent map re-renders by memoizing interactiveLayerIds array
+**Learning:** In react-map-gl, passing a new array reference on every render to the `interactiveLayerIds` prop of the `<Map>` component will cause the map's interactive events (like `onClick`, `onMouseEnter`, `onMouseLeave`) to be rebound constantly, which can cause severe performance issues, especially when layers change often or when hovering over features.
+**Action:** When calculating arrays derived from state that don't need to change on every render, wrap them in `useMemo` so that the reference remains stable as long as the underlying state hasn't changed.
