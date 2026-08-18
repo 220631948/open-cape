@@ -110,7 +110,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onClose, className, on
             </button>
           )}
           {onClose && (
-            <button onClick={onClose} className="p-1 text-surface-400 hover:text-surface-700 hover:bg-surface-100 rounded">
+            <button onClick={onClose} aria-label="Close" className="p-1 text-surface-400 hover:text-surface-700 hover:bg-surface-100 rounded">
               <X className="w-5 h-5" />
             </button>
           )}
