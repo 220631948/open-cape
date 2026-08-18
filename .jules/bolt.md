@@ -1,0 +1,3 @@
+## 2024-06-20 - React-map-gl interactiveLayerIds Referential Equality
+**Learning:** Passing a dynamically mapped array (e.g., `interactiveLayerIds={[...activeLayers.map(...)]}`) inline to the `<Map>` component breaks referential equality on every re-render (which happens frequently during map panning/zooming). This causes `react-map-gl` to unbind and re-bind interactive layer listeners 60 times a second, creating a significant performance bottleneck.
+**Action:** Always wrap arrays passed to `interactiveLayerIds` (and similar prop arrays/objects in map components) in a `useMemo` hook, with their precise dependencies, to ensure referential equality is preserved unless the underlying data actually changes.
