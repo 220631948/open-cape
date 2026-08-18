@@ -1,0 +1,3 @@
+## 2023-10-27 - Memoize Map Properties to Prevent Re-binding
+**Learning:** In a heavily interactive mapping application using `react-map-gl`, passing inline arrays or functions as props (like `interactiveLayerIds`) to the `<Map>` component causes referential inequality on every render. Because local state (like `viewState`) updates on every pan/zoom, the inline prop triggers `react-map-gl` to constantly tear down and re-bind event listeners for interactive layers, creating noticeable performance degradation and main-thread jitter.
+**Action:** Always extract `interactiveLayerIds` arrays and similar complex map properties into `useMemo` or define them outside the component if static, to preserve referential equality across viewport renders.
