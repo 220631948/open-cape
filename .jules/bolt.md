@@ -1,0 +1,3 @@
+## 2024-05-17 - Memoize dynamic layer IDs for MapLibre
+**Learning:** In highly interactive React map applications using maplibre-gl/react-map-gl, passing a dynamically generated array to props like `interactiveLayerIds` inline (e.g. `[...activeLayers.map(...)]`) causes referential inequality on every render. This forces the map to constantly re-bind click and hover events, degrading performance severely.
+**Action:** Always extract inline array derivations of active layers into a `useMemo` hook at the top level so that the referential equality is preserved until the underlying layer selections actually change.
