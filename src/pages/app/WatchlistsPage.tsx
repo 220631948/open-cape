@@ -128,7 +128,11 @@ export const WatchlistsPage = () => {
                    <div key={wl.id} className="bg-white p-4 border border-surface-200 rounded-lg shadow-sm hover:border-surface-300 transition-colors">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-semibold text-surface-900">{wl.name}</h4>
-                        <button onClick={() => deleteWatchlist(wl.id)} className="text-surface-400 hover:text-rose-600 transition-colors">
+                        <button
+                          onClick={() => deleteWatchlist(wl.id)}
+                          className="text-surface-400 hover:text-rose-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-1"
+                          aria-label="Delete watchlist"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
