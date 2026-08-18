@@ -419,6 +419,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             <button 
               onClick={() => setSearchTerm("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-surface-100 rounded-full transition-colors"
+              aria-label="Clear search"
             >
               <X className="h-3 w-3 text-surface-400 hover:text-surface-600" />
             </button>
@@ -448,6 +449,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                        <button
                          onClick={() => setShowProjectPulse(!showProjectPulse)}
                          className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
+                         role="switch"
+                         aria-checked={showProjectPulse}
+                         aria-label="Toggle Project Pulse"
                        >
                          <div className={cn("w-3 h-3 rounded-full bg-white shadow-sm transition-transform", showProjectPulse ? "translate-x-4" : "translate-x-0")} />
                        </button>
@@ -502,6 +506,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               <button 
                 onClick={() => setBaseMap('street')}
                 className={cn("border-2 rounded-md overflow-hidden relative group", baseMap === 'street' ? "border-rose-500" : "border-transparent hover:border-surface-300")}
+                aria-pressed={baseMap === 'street'}
               >
                 <div className="aspect-video bg-surface-100 flex items-center justify-center bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
                   <MapIcon className="h-4 w-4 text-surface-400" />
@@ -514,6 +519,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 onClick={() => setBaseMap('topo')}
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'topo' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Topographic map"
+                aria-pressed={baseMap === 'topo'}
               >
                 <div className="aspect-video flex items-center justify-center relative bg-emerald-50">
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/clean-textile.png')] opacity-30"></div>
@@ -527,6 +533,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                 onClick={() => setBaseMap('satellite')}
                 className={cn("border-2 rounded-md overflow-hidden relative group transition-colors", baseMap === 'satellite' ? "border-rose-500" : "border-transparent hover:border-surface-300 opacity-80 hover:opacity-100")}
                 title="Satellite imagery (context layer)"
+                aria-pressed={baseMap === 'satellite'}
               >
                 <div className="aspect-video bg-surface-900 flex items-center justify-center relative">
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>
@@ -542,6 +549,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                <button
                  onClick={() => setShowHillshade(!showHillshade)}
                  className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", showHillshade ? "bg-rose-500" : "bg-surface-300")}
+                 role="switch"
+                 aria-checked={showHillshade}
+                 aria-label="Toggle Terrain Hillshade"
                >
                  <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", showHillshade ? "translate-x-4" : "translate-x-0")} />
                </button>
@@ -553,6 +563,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                  <button
                    onClick={() => setHistoricalYear(historicalYear ? null : 2020)}
                    className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", historicalYear ? "bg-rose-500" : "bg-surface-300")}
+                   role="switch"
+                   aria-checked={!!historicalYear}
+                   aria-label="Toggle Historical Imagery"
                  >
                    <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", historicalYear ? "translate-x-4" : "translate-x-0")} />
                  </button>
