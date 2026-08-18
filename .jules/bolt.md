@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - react-map-gl interactiveLayerIds Referential Equality
+**Learning:** Passing an inline array or a mapped array directly to the `interactiveLayerIds` prop of a `react-map-gl` `Map` component breaks referential equality on every render. This forces the underlying map instance to continuously unbind and rebind all interactive event listeners (like clicks and hovers), leading to severe performance degradation, especially when state changes frequently (e.g., during drawing, mouse movement, or tooltips).
+**Action:** Always memoize the array passed to `interactiveLayerIds` using `useMemo` so that its reference remains stable between renders, only updating when the active layers actually change.
