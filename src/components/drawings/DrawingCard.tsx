@@ -106,6 +106,8 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-surface-900 hover:bg-surface-100"
                onClick={() => onEdit(drawing)}
+               title="Edit drawing"
+               aria-label="Edit drawing"
              >
                 <Pencil className="h-3.5 w-3.5" />
              </Button>
@@ -114,6 +116,8 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50"
                onClick={() => onDelete(drawing.id)}
+               title="Delete drawing"
+               aria-label="Delete drawing"
              >
                 <Trash2 className="h-3.5 w-3.5" />
              </Button>
