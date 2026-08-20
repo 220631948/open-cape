@@ -221,6 +221,22 @@ export const MapPage = () => {
 
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
 
+  // Memoize interactiveLayerIds to prevent breaking referential equality in Map component
+  // which causes unnecessary re-renders in react-map-gl
+  const interactiveLayerIds = useMemo(() => {
+    return [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ];
+  }, [activeLayers]);
+
   // Keep MapboxDraw features on top of dynamic rasters/layers
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -813,20 +829,7 @@ export const MapPage = () => {
                 }
               }}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
@@ -1014,7 +1017,8 @@ export const MapPage = () => {
 
         {/* Dynamic Custom Sources (e.g. from URL) */}
         {customSources.filter(s => s.type === 'geojson').map(source => (
-          <Source key={source.id} id={source.id} type="geojson" data={source.url}>
+          <React.Fragment key={source.id}>
+          <Source id={source.id} type="geojson" data={source.url}>
              {activeLayers.includes(source.id) && (
                <>
                  <Layer 
@@ -1038,6 +1042,7 @@ export const MapPage = () => {
                </>
              )}
           </Source>
+          </React.Fragment>
         ))}
 
         <ProjectPulseLayer visible={showProjectPulse} />
@@ -1274,8 +1279,8 @@ export const MapPage = () => {
                 }
 
                 return (
+                  <React.Fragment key={`imported-${layer.id}`}>
                   <Source
-                    key={`imported-${layer.id}`}
                     id={`imported-src-${layer.id}`}
                     type="geojson"
                     data={data as any}
@@ -1310,6 +1315,7 @@ export const MapPage = () => {
                       }}
                     />
                   </Source>
+                  </React.Fragment>
                 );
               })}
 
