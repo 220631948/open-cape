@@ -106,16 +106,20 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-surface-900 hover:bg-surface-100"
                onClick={() => onEdit(drawing)}
+               aria-label="Edit drawing"
+               title="Edit drawing"
              >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
              </Button>
              <Button 
                variant="ghost" 
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50"
                onClick={() => onDelete(drawing.id)}
+               aria-label="Delete drawing"
+               title="Delete drawing"
              >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
              </Button>
           </div>
         </div>
