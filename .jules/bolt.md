@@ -1,0 +1,3 @@
+## 2024-05-24 - Preserving referential equality on map interactivity arrays
+**Learning:** Passing an inline array for `interactiveLayerIds` into `react-map-gl`'s `<Map>` component forces the map to constantly re-evaluate and rebind interactivity handlers on every re-render since the array reference changes. This causes performance overhead, particularly when iterating over layer IDs from multiple active sources dynamically.
+**Action:** Always memoize arrays or objects (using `useMemo`) that are passed directly into map components as props (like `interactiveLayerIds` or inline sources) to preserve referential equality and prevent costly re-evaluations internally.
