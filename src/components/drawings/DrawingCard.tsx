@@ -99,23 +99,27 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                className="flex-1 h-8 text-[10px] font-bold uppercase"
                onClick={() => onView(drawing)}
              >
-                <MapIcon className="h-3 w-3 mr-1.5" /> View on Map
+                <MapIcon className="h-3 w-3 mr-1.5" aria-hidden="true" /> View on Map
              </Button>
              <Button 
                variant="ghost" 
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-surface-900 hover:bg-surface-100"
                onClick={() => onEdit(drawing)}
+               aria-label="Edit drawing"
+               title="Edit drawing"
              >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
              </Button>
              <Button 
                variant="ghost" 
                size="icon" 
                className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50"
                onClick={() => onDelete(drawing.id)}
+               aria-label="Delete drawing"
+               title="Delete drawing"
              >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
              </Button>
           </div>
         </div>
