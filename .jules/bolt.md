@@ -1,0 +1,3 @@
+## 2024-08-27 - Memoize inline arrays and functions in React MapGL props
+**Learning:** Passing inline arrays (e.g., `interactiveLayerIds`) and inline functions (e.g., `onData`) directly into map component props causes costly map re-evaluations and re-bindings on every render. Because the map's render tree can be heavy, these referential equality failures compound performance issues significantly in large web applications.
+**Action:** Always wrap arrays, objects, and functions passed as props to heavy map components in `useMemo` or `useCallback` to ensure referential equality is preserved across renders, extracting them from the JSX block.

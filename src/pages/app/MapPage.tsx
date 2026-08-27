@@ -744,6 +744,31 @@ export const MapPage = () => {
     }
   };
 
+  // Memoize interactive layer IDs to prevent unnecessary map re-evaluations
+  const interactiveLayerIds = useMemo(() => {
+    return [
+      ...activeLayers.map(id => `layer-${id}`),
+      ...activeLayers.map(id => `layer-${id}-fill`),
+      ...activeLayers.map(id => `layer-${id}-line`),
+      ...activeLayers.map(id => `layer-${id}-circle`),
+      ...activeLayers.map(id => `layer-${id}-clusters`),
+      ...activeLayers.map(id => `layer-${id}-cluster-count`),
+      ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+        .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+      "drawing-annotation-images"
+    ];
+  }, [activeLayers]);
+
+  // Memoize onData handler to prevent unnecessary re-bindings
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
   return (
     <div className="absolute inset-0 flex flex-col bg-surface-50 overflow-hidden">
       <div className="flex-1 flex overflow-hidden relative">
@@ -804,29 +829,9 @@ export const MapPage = () => {
               {...viewState}
               onMove={onMove}
               onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={interactiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
