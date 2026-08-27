@@ -70,15 +70,24 @@ const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, l
         "flex items-center gap-3 p-1.5 rounded-md transition-colors bg-surface-50 text-surface-900",
       )}
     >
-      <div {...attributes} {...listeners} className="cursor-grab hover:bg-surface-200 p-1 rounded">
-        <GripVertical className="h-3.5 w-3.5 text-surface-400" />
+      <div
+        {...attributes}
+        {...listeners}
+        role="button"
+        tabIndex={0}
+        aria-label={`Reorder ${name} layer`}
+        title={`Reorder ${name} layer`}
+        className="cursor-grab hover:bg-surface-200 p-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+      >
+        <GripVertical className="h-3.5 w-3.5 text-surface-400" aria-hidden="true" />
       </div>
       <button
         onClick={() => onToggle(id)}
-        title="Hide layer"
-        className={cn("shrink-0 p-1 rounded-sm transition-colors", layerInfo?.color || "text-surface-700")}
+        aria-label={`Hide ${name} layer`}
+        title={`Hide ${name} layer`}
+        className={cn("shrink-0 p-1 rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500", layerInfo?.color || "text-surface-700")}
       >
-        <Eye className="h-4 w-4" />
+        <Eye className="h-4 w-4" aria-hidden="true" />
       </button>
       <div className="flex-1 text-xs font-medium truncate flex flex-col items-start" title={name}>
         <div className="flex items-center gap-2">
@@ -103,8 +112,9 @@ const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, l
         step="0.05"
         value={layerOpacities[id] ?? 1}
         onChange={(e) => onOpacityChange(id, parseFloat(e.target.value))}
-        className="w-12 h-1 bg-surface-200 rounded-full appearance-none cursor-pointer accent-surface-500 opacity-50 hover:opacity-100 transition-opacity"
-        title="Adjust opacity"
+        aria-label={`Adjust opacity for ${name} layer`}
+        title={`Adjust opacity for ${name} layer`}
+        className="w-12 h-1 bg-surface-200 rounded-full appearance-none cursor-pointer accent-surface-500 opacity-50 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       />
     </div>
   );
