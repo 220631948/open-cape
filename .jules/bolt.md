@@ -1,0 +1,3 @@
+## 2024-10-24 - Preserving referential equality for Mapbox props
+**Learning:** `react-map-gl` relies heavily on referential equality for complex props like `interactiveLayerIds`. Passing an inline computed array breaks this equality on every React render, causing the underlying Mapbox instance to repeatedly re-bind interaction events and degrade interaction performance significantly.
+**Action:** Always memoize arrays or objects (using `useMemo` or static constants) passed to complex third-party library components, especially in map renderers where prop churn can trigger expensive DOM operations or internal state rebuilds.
