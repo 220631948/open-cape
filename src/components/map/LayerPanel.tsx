@@ -75,10 +75,11 @@ const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, l
       </div>
       <button
         onClick={() => onToggle(id)}
-        title="Hide layer"
+        title={`Hide ${name} layer`}
+        aria-label={`Hide ${name} layer`}
         className={cn("shrink-0 p-1 rounded-sm transition-colors", layerInfo?.color || "text-surface-700")}
       >
-        <Eye className="h-4 w-4" />
+        <Eye className="h-4 w-4" aria-hidden="true" />
       </button>
       <div className="flex-1 text-xs font-medium truncate flex flex-col items-start" title={name}>
         <div className="flex items-center gap-2">
@@ -104,7 +105,8 @@ const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, l
         value={layerOpacities[id] ?? 1}
         onChange={(e) => onOpacityChange(id, parseFloat(e.target.value))}
         className="w-12 h-1 bg-surface-200 rounded-full appearance-none cursor-pointer accent-surface-500 opacity-50 hover:opacity-100 transition-opacity"
-        title="Adjust opacity"
+        title={`Adjust opacity for ${name}`}
+        aria-label={`Adjust opacity for ${name}`}
       />
     </div>
   );
@@ -285,7 +287,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               >
                 <button
                   onClick={() => onToggleLayer(layer.id)}
-                  title={isActive ? "Hide layer" : "Show layer"}
+                  title={isActive ? `Hide ${layer.name} layer` : `Show ${layer.name} layer`}
+                  aria-label={isActive ? `Hide ${layer.name} layer` : `Show ${layer.name} layer`}
                   className={cn(
                     "shrink-0 p-1 rounded-sm transition-colors",
                     isActive
@@ -294,9 +297,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                   )}
                 >
                   {isActive ? (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   )}
                 </button>
                 <div
@@ -335,7 +338,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                     value={layerOpacities[layer.id] ?? 1}
                     onChange={(e) => onOpacityChange(layer.id, parseFloat(e.target.value))}
                     className="w-12 h-1 bg-surface-200 rounded-full appearance-none cursor-pointer accent-surface-500 opacity-50 hover:opacity-100 transition-opacity"
-                    title="Adjust opacity"
+                    title={`Adjust opacity for ${layer.name}`}
+                    aria-label={`Adjust opacity for ${layer.name}`}
                   />
                 )}
               </div>
