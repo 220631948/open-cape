@@ -1,0 +1,3 @@
+## 2024-09-06 - Optimized react-map-gl interactiveLayerIds Prop
+**Learning:** In MapLibre React implementations (via `react-map-gl`), passing an inline dynamically generated array (e.g., mapping and filtering active layers) to the `interactiveLayerIds` prop on the `<Map>` component causes referential equality checks to fail on every render, triggering unnecessary and potentially costly reconciliation and event rebinding loops within the map instance.
+**Action:** Always wrap arrays derived from state variables passed to `react-map-gl` components using `useMemo` to preserve referential equality and optimize render performance.
