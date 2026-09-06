@@ -1,3 +1,6 @@
 ## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
 **Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
 **Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-09-06 - Missing ARIA Labels on Map List Icon Buttons
+**Learning:** Found a widespread pattern in `TasksPage` where repeated interactive icon-only buttons (like Add Subtask, Edit, and Delete) were missing `aria-label` and `title` attributes, making them inaccessible to screen readers, especially within mapped lists where generic labels are indistinguishable.
+**Action:** Always interpolate the contextual item name or title (e.g., `${task.title}`) into the `aria-label` and `title` attributes when adding accessible attributes to buttons inside a map function or repeated list component. Ensure `aria-hidden="true"` is added to their inner icon elements.
