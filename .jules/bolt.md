@@ -1,0 +1,3 @@
+## 2024-05-24 - Memoize React Map GL properties
+**Learning:** In a heavily interactive mapping application using `react-map-gl`, creating arrays or objects inline for props like `interactiveLayerIds` or `onData` handlers causes referential inequality on every render. This forces the underlying map rendering engine to diff and update its state frequently, degrading tracking and overall application performance.
+**Action:** Always wrap dynamically generated property arrays passed to `<Map>` in `useMemo`, and map event handlers like `onData` in `useCallback` to preserve referential equality across component re-renders unless their dependencies inherently change.

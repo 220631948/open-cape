@@ -468,6 +468,32 @@ export const MapPage = () => {
     setViewState(evt.viewState);
   }, []);
 
+  // ⚡ Bolt: Memoize interactiveLayerIds to prevent referential inequality on every render.
+  // This avoids Maplibre having to diff/update interactive layer props unnecessarily,
+  // which is especially expensive when tracking mouse interactions over many layers.
+  const mapInteractiveLayerIds = useMemo(() => [
+    ...activeLayers.map(id => `layer-${id}`),
+    ...activeLayers.map(id => `layer-${id}-fill`),
+    ...activeLayers.map(id => `layer-${id}-line`),
+    ...activeLayers.map(id => `layer-${id}-circle`),
+    ...activeLayers.map(id => `layer-${id}-clusters`),
+    ...activeLayers.map(id => `layer-${id}-cluster-count`),
+    ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
+      .flatMap(s => s.mapLibreLayers.map(l => l.id)),
+    "drawing-annotation-images"
+  ], [activeLayers]);
+
+  // ⚡ Bolt: Memoize the onData callback to preserve referential equality and avoid
+  // re-binding map event listeners on every render cycle.
+  const handleMapData = useCallback((e: any) => {
+    if (e.dataType === 'source' && e.isSourceLoaded) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => setIsMapLoading(false), 300);
+    } else if (e.dataType === 'source') {
+      setIsMapLoading(true);
+    }
+  }, []);
+
   const handleModeChange = (mode: DrawMode) => {
     setDrawMode(mode);
     if (!drawRef.current) return;
@@ -804,29 +830,9 @@ export const MapPage = () => {
               {...viewState}
               onMove={onMove}
               onLoad={() => setIsMapLoading(false)}
-              onData={(e) => {
-                if (e.dataType === 'source' && e.isSourceLoaded) {
-                  // Small delay to ensure smooth transition
-                  setTimeout(() => setIsMapLoading(false), 300);
-                } else if (e.dataType === 'source') {
-                  setIsMapLoading(true);
-                }
-              }}
+              onData={handleMapData}
               mapStyle={baseMap === 'satellite' ? "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
-              interactiveLayerIds={
-                // Include dynamic layer ids AND exact layer ids defined in sources
-                [
-                  ...activeLayers.map(id => `layer-${id}`),
-                  ...activeLayers.map(id => `layer-${id}-fill`),
-                  ...activeLayers.map(id => `layer-${id}-line`),
-                  ...activeLayers.map(id => `layer-${id}-circle`),
-                  ...activeLayers.map(id => `layer-${id}-clusters`),
-                  ...activeLayers.map(id => `layer-${id}-cluster-count`),
-                  ...ALL_SOURCES.filter(s => activeLayers.includes(s.id))
-                    .flatMap(s => s.mapLibreLayers.map(l => l.id)),
-                  "drawing-annotation-images"
-                ]
-              }
+              interactiveLayerIds={mapInteractiveLayerIds}
               onClick={async (evt) => {
                 if (drawMode === "radius") {
                   const { lng, lat } = evt.lngLat;
