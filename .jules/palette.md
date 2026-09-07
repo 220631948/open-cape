@@ -1,3 +1,6 @@
 ## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
 **Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
 **Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-05-23 - Screen Reader Redundancy in Icon Buttons
+**Learning:** Found multiple instances where native `<button>` and custom `<Button size="icon">` elements lacked explicit accessible names (`aria-label`) and had redundant child icons. This makes it impossible for screen reader users to discern the button's function and can lead to duplicate announcements.
+**Action:** Always ensure that icon-only buttons include `aria-label` and `title` attributes. Furthermore, explicitly add `aria-hidden="true"` to child icons (e.g., Lucide React components) inside these buttons to prevent assistive technologies from reading redundant SVG properties or attempting to parse the icon itself.
