@@ -448,6 +448,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                        <button
                          onClick={() => setShowProjectPulse(!showProjectPulse)}
                          className={cn("w-8 h-4 rounded-full flex items-center px-0.5 transition-colors", showProjectPulse ? "bg-rose-500" : "bg-surface-300")}
+                         title={showProjectPulse ? "Disable spatial project pulse" : "Enable spatial project pulse"}
+                         aria-checked={showProjectPulse}
+                         role="switch"
                        >
                          <div className={cn("w-3 h-3 rounded-full bg-white shadow-sm transition-transform", showProjectPulse ? "translate-x-4" : "translate-x-0")} />
                        </button>
@@ -542,6 +545,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                <button
                  onClick={() => setShowHillshade(!showHillshade)}
                  className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", showHillshade ? "bg-rose-500" : "bg-surface-300")}
+                 title={showHillshade ? "Disable terrain hillshade" : "Enable terrain hillshade"}
+                 aria-checked={showHillshade}
+                 role="switch"
                >
                  <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", showHillshade ? "translate-x-4" : "translate-x-0")} />
                </button>
@@ -553,6 +559,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                  <button
                    onClick={() => setHistoricalYear(historicalYear ? null : 2020)}
                    className={cn("w-9 h-5 rounded-full flex items-center px-0.5 transition-colors", historicalYear ? "bg-rose-500" : "bg-surface-300")}
+                   title={historicalYear ? "Disable historical imagery" : "Enable historical imagery"}
+                   aria-checked={!!historicalYear}
+                   role="switch"
                  >
                    <div className={cn("w-4 h-4 rounded-full bg-white shadow-sm transition-transform", historicalYear ? "translate-x-4" : "translate-x-0")} />
                  </button>
