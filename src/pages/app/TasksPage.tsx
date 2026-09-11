@@ -187,8 +187,16 @@ const SortableTaskItem = ({
       )}
     >
       <div className="flex items-start gap-3 w-full capitalize">
-        <div {...attributes} {...listeners} className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors">
-          <GripVertical className="h-4 w-4" />
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:bg-surface-100 p-1.5 rounded text-surface-400 mt-0.5 shrink-0 transition-colors"
+          role="button"
+          tabIndex={0}
+          aria-label={`Drag to reorder ${task.title}`}
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4" aria-hidden="true" />
         </div>
         
         <div className="flex-1 min-w-0">
@@ -235,15 +243,36 @@ const SortableTaskItem = ({
 
           <div className="flex items-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {!isSubtask && onAddSubtask && (
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
-                 <Plus className="h-3.5 w-3.5" />
+               <Button
+                 variant="ghost"
+                 size="icon"
+                 className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0"
+                 onClick={() => onAddSubtask(task.id)}
+                 title="Add subtask"
+                 aria-label={`Add subtask to ${task.title}`}
+               >
+                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
-              <Edit2 className="h-3.5 w-3.5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0"
+              onClick={() => setIsEditing(true)}
+              title="Edit task"
+              aria-label={`Edit task ${task.title}`}
+            >
+              <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
-              <Trash2 className="h-3.5 w-3.5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0"
+              onClick={() => onDeleteRequest(task.id)}
+              title="Delete task"
+              aria-label={`Delete task ${task.title}`}
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </div>
         </div>
