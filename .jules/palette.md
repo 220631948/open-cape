@@ -1,3 +1,3 @@
-## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
-**Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
-**Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-05-18 - Tooltips and ARIA for Action Buttons
+**Learning:** Generic icon-only interactive elements (like `<Button size="icon">`) without `aria-label` or `title` properties are frequently found across the app, degrading screen reader accessibility and hiding context from standard mouse users.
+**Action:** When adding accessible attributes to icon-only buttons, always include `aria-label` and `title` properties for context, and add `aria-hidden="true"` to their inner icon components. Ensure dynamic contexts (like in maps/lists) are interpolated.
