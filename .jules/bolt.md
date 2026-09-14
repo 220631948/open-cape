@@ -1,0 +1,3 @@
+## 2024-03-24 - Prevent heavy MapLibre re-evaluations
+**Learning:** `react-map-gl` and `MapLibre` can suffer significant performance degradation if `interactiveLayerIds` (or similar array/object props) are created inline during render, because they lose referential equality and force the map instance to constantly re-bind or re-evaluate interactive layers even when no layers changed.
+**Action:** Always wrap dynamically calculated array props (like `interactiveLayerIds`) that are passed to the `Map` component in a `useMemo` hook to ensure referential equality across renders unless the source dependencies change.
