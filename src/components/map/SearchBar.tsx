@@ -168,8 +168,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
              onClick={() => { setSearchTerm(''); inputRef.current?.focus(); }}
              className="ml-2 text-surface-400 hover:text-surface-600 transition-colors rounded-full hover:bg-surface-100 p-0.5"
              aria-label="Clear search"
+             title="Clear search"
            >
-             <X className="h-4 w-4" />
+             <X className="h-4 w-4" aria-hidden="true" />
            </button>
         )}
       </div>
@@ -194,8 +195,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSelect, className }) => 
                    <Clock className="w-4 h-4 text-surface-400 shrink-0" />
                    {term}
                  </div>
-                 <button onClick={(e) => clearRecent(e, term)} className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors">
-                   <X className="w-3 h-3" />
+                 <button
+                   onClick={(e) => clearRecent(e, term)}
+                   className="text-surface-400 hover:text-rose-500 p-1 rounded-full hover:bg-surface-100 transition-colors"
+                   aria-label={`Remove ${term} from recent searches`}
+                   title={`Remove ${term} from recent searches`}
+                 >
+                   <X className="w-3 h-3" aria-hidden="true" />
                  </button>
                </li>
              ))}
