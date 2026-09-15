@@ -209,41 +209,47 @@ const SortableTaskItem = ({
 
         <div className="flex flex-wrap items-center gap-1 sm:ml-auto shrink-0 self-center">
           {/* Status Toggles */}
-          <div className="flex items-center bg-surface-100 p-0.5 rounded-lg mr-2 border border-surface-200">
+          <div className="flex items-center bg-surface-100 p-0.5 rounded-lg mr-2 border border-surface-200" role="group" aria-label="Task status">
             <button
-              title="Set to 'To Do'"
+              title={`Set "${task.title}" to 'To Do'`}
+              aria-label={`Set "${task.title}" to 'To Do'`}
+              aria-pressed={task.status === 'todo'}
               onClick={() => onUpdate(task.id, { status: 'todo' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'todo' ? "bg-white shadow-sm text-surface-900 ring-1 ring-surface-200" : "text-surface-50 hover:text-surface-700")}
             >
-              <div className="w-3.5 h-3.5 rounded border-2 border-current" />
+              <div className="w-3.5 h-3.5 rounded border-2 border-current" aria-hidden="true" />
             </button>
             <button
-              title="Set to 'In Progress'"
+              title={`Set "${task.title}" to 'In Progress'`}
+              aria-label={`Set "${task.title}" to 'In Progress'`}
+              aria-pressed={task.status === 'in_progress'}
               onClick={() => onUpdate(task.id, { status: 'in_progress' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'in_progress' ? "bg-white shadow-sm text-indigo-600 ring-1 ring-surface-200" : "text-surface-500 hover:text-indigo-500")}
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
             </button>
             <button
-              title="Set to 'Done'"
+              title={`Set "${task.title}" to 'Done'`}
+              aria-label={`Set "${task.title}" to 'Done'`}
+              aria-pressed={task.status === 'done'}
               onClick={() => onUpdate(task.id, { status: 'done' })}
               className={cn("p-1.5 rounded-md transition-all", task.status === 'done' ? "bg-white shadow-sm text-emerald-600 ring-1 ring-surface-200" : "text-surface-500 hover:text-emerald-500")}
             >
-              <Check className="w-3.5 h-3.5" strokeWidth={3} />
+              <Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />
             </button>
           </div>
 
           <div className="flex items-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {!isSubtask && onAddSubtask && (
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
-                 <Plus className="h-3.5 w-3.5" />
+               <Button variant="ghost" size="icon" aria-label={`Add subtask to "${task.title}"`} title={`Add subtask to "${task.title}"`} className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => onAddSubtask(task.id)}>
+                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
-              <Edit2 className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" aria-label={`Edit task "${task.title}"`} title={`Edit task "${task.title}"`} className="h-8 w-8 text-surface-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" onClick={() => setIsEditing(true)}>
+              <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
-              <Trash2 className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" aria-label={`Delete task "${task.title}"`} title={`Delete task "${task.title}"`} className="h-8 w-8 text-surface-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" onClick={() => onDeleteRequest(task.id)}>
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </div>
         </div>
