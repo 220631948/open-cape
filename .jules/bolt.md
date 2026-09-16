@@ -1,0 +1,4 @@
+
+## 2024-05-24 - Preserving referential equality for `interactiveLayerIds` in `react-map-gl`
+**Learning:** `react-map-gl` relies on referential equality for props like `interactiveLayerIds` to manage pointer event listeners. If an inline array is used (e.g., `interactiveLayerIds={[...activeLayers.map(...)]}`), the reference changes on every render. This forces the library to constantly remove and re-add DOM event listeners to the map container, causing significant performance degradation during map interactions or when state (like component hover states) updates frequently.
+**Action:** Always extract inline array or object calculations for critical `react-map-gl` props into a `useMemo` hook to ensure referential equality is preserved across renders, unless their dependencies actually change.
