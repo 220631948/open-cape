@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid defining arrays on every render
+**Learning:** `getLayerInfo` creates a new `allLayers` array on every invocation, which is called for each active layer during render. In a component that renders lists, recreating static arrays or objects per-item per-render can lead to unnecessary garbage collection overhead and potential performance issues, especially when rendering many layers.
+**Action:** Move static data structures (like `allLayers`) outside of the component or use `useMemo` if they depend on props, to ensure referential equality and avoid recreating them on every render.
