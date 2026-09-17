@@ -1,3 +1,6 @@
 ## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
 **Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
 **Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-06-25 - Contextual Accessibility in Mapped Lists
+**Learning:** When repeating elements via mapping (like task items in a list), generic `aria-label`s or `title`s (e.g., 'Delete', 'Edit') make it impossible for screen reader users to distinguish which specific item the action applies to.
+**Action:** Always interpolate unique contextual identifiers (e.g., the item's title or ID) into `aria-label`s and `title`s within repeated components (e.g., `` aria-label={`Delete ${task.title}`} ``), and ensure toggles use `aria-pressed` or `aria-checked` to communicate active states.
