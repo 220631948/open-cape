@@ -44,6 +44,29 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+const ALL_LAYERS_MAP = new Map([
+  ["nasa-gibs", { id: "nasa-gibs", name: "NASA GIBS Satellite (Low-Res)", color: "text-blue-500" }],
+  ["openaerialmap", { id: "openaerialmap", name: "Local Aerial (OAM Community)", color: "text-emerald-500" }],
+  ["erf_boundaries", { id: "erf_boundaries", name: "City of Cape Town (ERF)", color: "text-rose-500" }],
+  ["general_plans", { id: "general_plans", name: "General Plans", color: "text-rose-500" }],
+  ["zoning_dms", { id: "zoning_dms", name: "Zoning (DMS base)", color: "text-blue-500" }],
+  ["zoning_overlay", { id: "zoning_overlay", name: "Zoning Overlays", color: "text-blue-500" }],
+  ["sdf", { id: "sdf", name: "Spatial Development Framework", color: "text-amber-500" }],
+  ["contours", { id: "contours", name: "Topographic Contours", color: "text-emerald-500" }],
+  ["flood_zones", { id: "flood_zones", name: "Flood Risk Zones", color: "text-emerald-500" }],
+  ["osm_geofabrik_sa", { id: "osm_geofabrik_sa", name: "OSM Base (South Africa)", color: "text-emerald-500" }],
+  ["wcgp-cadastre-vector", { id: "wcgp-cadastre-vector", name: "Western Cape Cadastre", color: "text-rose-500" }],
+  ["wcgp-zoning", { id: "wcgp-zoning", name: "Western Cape Zoning", color: "text-blue-500" }],
+  ["wcgp-topo", { id: "wcgp-topo", name: "Western Cape Topographic Map", color: "text-emerald-500" }],
+  ["wcgp-aerial", { id: "wcgp-aerial", name: "Western Cape Aerial Imagery", color: "text-blue-500" }],
+  ["imported_geojson", { id: "imported_geojson", name: "Imported GeoJSON", color: "text-indigo-500" }],
+  ["schools", { id: "schools", name: "Schools", color: "text-blue-500" }],
+  ["health_care", { id: "health_care", name: "Health Care", color: "text-red-500" }],
+  ["train_stations", { id: "train_stations", name: "Train Stations", color: "text-orange-500" }],
+  ["libraries", { id: "libraries", name: "Libraries", color: "text-violet-500" }],
+  ["user_drawings", { id: "user_drawings", name: "My Drawings", color: "text-purple-500" }]
+]);
+
 const SortableActiveLayerItem = ({ id, name, layerInfo, onToggle, layerStatus, layerOpacities, onOpacityChange }: any) => {
   const {
     attributes,
@@ -196,30 +219,9 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
     }
   };
 
+  // Optimization: use top-level Map for O(1) lookups and prevent recreating data structure on every render
   const getLayerInfo = (id: string) => {
-    const allLayers = [
-      { id: "nasa-gibs", name: "NASA GIBS Satellite (Low-Res)", color: "text-blue-500" },
-      { id: "openaerialmap", name: "Local Aerial (OAM Community)", color: "text-emerald-500" },
-      { id: "erf_boundaries", name: "City of Cape Town (ERF)", color: "text-rose-500" },
-      { id: "general_plans", name: "General Plans", color: "text-rose-500" },
-      { id: "zoning_dms", name: "Zoning (DMS base)", color: "text-blue-500" },
-      { id: "zoning_overlay", name: "Zoning Overlays", color: "text-blue-500" },
-      { id: "sdf", name: "Spatial Development Framework", color: "text-amber-500" },
-      { id: "contours", name: "Topographic Contours", color: "text-emerald-500" },
-      { id: "flood_zones", name: "Flood Risk Zones", color: "text-emerald-500" },
-      { id: "osm_geofabrik_sa", name: "OSM Base (South Africa)", color: "text-emerald-500" },
-      { id: "wcgp-cadastre-vector", name: "Western Cape Cadastre", color: "text-rose-500" },
-      { id: "wcgp-zoning", name: "Western Cape Zoning", color: "text-blue-500" },
-      { id: "wcgp-topo", name: "Western Cape Topographic Map", color: "text-emerald-500" },
-      { id: "wcgp-aerial", name: "Western Cape Aerial Imagery", color: "text-blue-500" },
-      { id: "imported_geojson", name: "Imported GeoJSON", color: "text-indigo-500" },
-      { id: "schools", name: "Schools", color: "text-blue-500" },
-      { id: "health_care", name: "Health Care", color: "text-red-500" },
-      { id: "train_stations", name: "Train Stations", color: "text-orange-500" },
-      { id: "libraries", name: "Libraries", color: "text-violet-500" },
-      { id: "user_drawings", name: "My Drawings", color: "text-purple-500" }
-    ];
-    return allLayers.find(l => l.id === id) || { id, name: id, color: "text-surface-700" };
+    return ALL_LAYERS_MAP.get(id) || { id, name: id, color: "text-surface-700" };
   };
 
   useEffect(() => {
