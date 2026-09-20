@@ -1,0 +1,3 @@
+## 2025-03-09 - MapLibre Re-render Optimizations
+**Learning:** In a spatial analysis application using react-map-gl, passing inline arrays to `interactiveLayerIds` or inline functions to Map event handlers (`onClick`, `onLoad`, `onData`) causes the entire `Map` component to re-evaluate on every parent component render, degrading rendering and interaction performance.
+**Action:** Always wrap `interactiveLayerIds` in `useMemo` to preserve referential equality when the layer stack composition depends on derived state (like `activeLayers`). Extract all inline `Map` event handlers into `useCallback` hooks.
