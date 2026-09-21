@@ -32,13 +32,15 @@ export const RadiusResultsPanel: React.FC<RadiusResultsPanelProps> = ({
             <Layers className="h-4 w-4 text-indigo-600" />
             Nearby Analysis
           </h3>
-          <div className="flex gap-1.5 mt-1">
+          <div className="flex gap-1.5 mt-1" role="group" aria-label="Select search radius">
              {[100, 250, 500, 1000].map(r => (
                <button 
                  key={r}
                  onClick={() => onRadiusChange?.(r)}
+                 aria-pressed={radius === r}
+                 aria-label={`${r} meters`}
                  className={cn(
-                   "text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all",
+                   "text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                    radius === r 
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
                     : "bg-white border-surface-200 text-surface-500 hover:border-indigo-300"
@@ -49,8 +51,13 @@ export const RadiusResultsPanel: React.FC<RadiusResultsPanelProps> = ({
              ))}
           </div>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors">
-          <X className="h-4 w-4" />
+        <button
+          onClick={onClose}
+          className="p-1 hover:bg-surface-100 rounded-lg text-surface-400 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          aria-label="Close nearby analysis"
+          title="Close nearby analysis"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
