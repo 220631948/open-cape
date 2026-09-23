@@ -1,0 +1,17 @@
+🎨 Palette: Add accessible context to task item action buttons
+
+💡 What:
+Added comprehensive ARIA attributes (`aria-label`, `aria-pressed`, `role="group"`) and hover `title` properties to the icon-only action buttons (Status toggles, Add Subtask, Edit, Delete) on individual task rows.
+
+🎯 Why:
+Generic icon buttons without accessible names or tooltips are frustrating for screen reader users and confusing for mouse users. By interpolating the `task.title` into the labels (e.g., "Delete [Task Name]"), users navigating via keyboard or screen reader gain immediate, clear context for what action they are about to take.
+
+📸 Before/After:
+* Before: Screen readers announced "button" or read the raw SVG element when focusing on task actions.
+* After: Screen readers announce "Edit Buy groceries, button" or "Set to 'Done', toggle button, pressed".
+
+♿ Accessibility:
+* Wrapped status toggles in a `role="group"` with an overarching `aria-label`.
+* Added contextual `aria-label`s to all icon-only buttons.
+* Implemented `aria-pressed` for status toggle state indication.
+* Added `aria-hidden="true"` to inner SVG icons to prevent redundant or confusing screen reader announcements.
