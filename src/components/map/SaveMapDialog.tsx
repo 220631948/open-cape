@@ -53,15 +53,16 @@ export const SaveMapDialog: React.FC<SaveMapDialogProps> = ({ isOpen, onClose, v
           <h2 className="text-lg font-semibold text-surface-900 flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-surface-400" /> Save Map View
           </h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8 -mr-2">
-             <X className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close dialog" title="Close dialog" className="rounded-full h-8 w-8 -mr-2">
+             <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
 
         <div className="p-6 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-surface-700">Map Title <span className="text-rose-500">*</span></label>
+            <label htmlFor="map-title" className="text-sm font-medium text-surface-700">Map Title <span className="text-rose-500">*</span></label>
             <input 
+               id="map-title"
                type="text" 
                className="w-full px-3 py-2 border border-surface-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
                placeholder="e.g. CBD Focus Area Analysis"
@@ -72,8 +73,9 @@ export const SaveMapDialog: React.FC<SaveMapDialogProps> = ({ isOpen, onClose, v
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-surface-700">Description</label>
+            <label htmlFor="map-description" className="text-sm font-medium text-surface-700">Description</label>
             <textarea 
+               id="map-description"
                className="w-full px-3 py-2 border border-surface-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
                rows={3}
                placeholder="What are you looking at? (Optional)"
@@ -83,8 +85,9 @@ export const SaveMapDialog: React.FC<SaveMapDialogProps> = ({ isOpen, onClose, v
           </div>
 
           <div className="space-y-1.5 flex flex-col">
-            <label className="text-sm font-medium text-surface-700">Link to Project</label>
+            <label htmlFor="map-project" className="text-sm font-medium text-surface-700">Link to Project</label>
             <select
+               id="map-project"
                className="w-full px-3 py-2 border border-surface-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 sm:text-sm bg-white"
                value={projectId}
                onChange={e => setProjectId(e.target.value)}

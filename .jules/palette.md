@@ -1,3 +1,6 @@
 ## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
 **Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
 **Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-05-24 - Accessibility bindings for Form Fields and Dialog Triggers
+**Learning:** React fragments and generic HTML structures in dialogs often miss explicit `id`/`htmlFor` bindings between labels and form controls, which degrades the experience for screen reader users and reduces the clickable area for focus. Icon-only `<Button>` components also frequently lack explicit `aria-label` or `title` props.
+**Action:** Always ensure that form labels use `htmlFor` matching the input's `id`, and add `aria-label`/`title` along with `aria-hidden="true"` on inner decorative icons for modal close buttons to provide full context without redundant announcements.
