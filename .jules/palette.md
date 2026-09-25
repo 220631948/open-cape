@@ -1,3 +1,6 @@
 ## 2024-05-15 - Missing ARIA attributes on Icon-only Buttons
 **Learning:** Found multiple instances where `<Button size="icon">` lacks accessible names (`aria-label`, `title`) and state indicators (`aria-expanded`). This is especially critical for mobile drawer toggles and notification bells containing visual badges.
 **Action:** Always verify that generic icon buttons include explicit `aria-label` and `title` properties. For buttons with dynamic state (menus, drawers), use `aria-expanded`. For buttons with visual status (unread counts), ensure context is in the `aria-label` and use `aria-hidden="true"` on the icon/badge.
+## 2024-05-27 - Enhance SaveMapDialog Accessibility and Loading Feedback
+**Learning:** Adding `htmlFor` and `id` bindings to input fields within dynamic dialogs is crucial for screen readers, as form elements inside modals are completely disassociated from contextual page headers. Similarly, providing immediate visual feedback during async operations using spinners like `Loader2` prevents double submissions.
+**Action:** Always ensure any form inputs added inside new dialog components have explicitly linked labels via `htmlFor`/`id` bindings, and that primary action buttons display loading state spinners with clear contextual text.
